@@ -256,19 +256,19 @@ import sinc_pkg::*;
     localparam ATTRIB_WMASK             = 4'b1111;
     localparam RAM_WRAPPER_ADDR_WIDTH   = `MSFT_SP_CIRAM0_ADDR_WIDTH;
     localparam RAM_WRAPPER_DATA_WIDTH   = `MSFT_SP_CIRAM0_DATA_WIDTH;
-    localparam RAM_WRAPPER_SIZE         = `MSFT_SP_CIRAM0_SIZE;				                // total number of bytes; must be addressable using 'ADDR_WIDTH' bits of addresses
-    localparam RAM_WRAPPER_SUPPORT_SECDED = `MSFT_SP_CIRAM0_SUPPORT_SECDED;                 // Set to 1 for enabling SECDED scheme. Set to 0 for DED scheme.
-    localparam RAM_WRAPPER_SUPPORT_RMW  = `MSFT_SP_CIRAM0_SUPPORT_RMW;                      // support Read-Mod-Write
-    localparam RAM_WRAPPER_SUPPORT_INJECT = `MSFT_SP_CIRAM0_SUPPORT_INJECT;                 // support error inject
-    localparam RAM_WRAPPER_SUPPORT_ENGN_ERASE = 1;                                          // support engine erase for this instance
-    localparam RAM_WRAPPER_SUPPORT_ERASE = `MSFT_SP_CIRAM0_SUPPORT_ERASE;                   // support creg erase for this instance
-    localparam RAM_WRAPPER_SUPPORT_WRITE_BACK = `MSFT_SP_CIRAM0_SUPPORT_WRITE_BACK;         // Set to enable write back on correctable errors during read.
-    localparam RAM_WRAPPER_RMW_PIPELINE = `MSFT_SP_CIRAM0_RMW_PIPELINE;                     // 0 - No pipelining on RMW writes; 1 - One pipeline stage on RMW writes
-    localparam RAM_WRAPPER_PARITY_EN    = `MSFT_SP_CIRAM0_PARITY_EN;                        // Parity enable for engine input signals and internal flops that are not ECC protected.
-    localparam RAM_WRAPPER_ERASE_START_ADDR = `MSFT_SP_CIRAM0_ERASE_START_ADDR;             // Start erase from this address
-    localparam RAM_WRAPPER_ENGN_ERASE_START_ADDR = `MSFT_SP_CIRAM0_ENGN_ERASE_START_ADDR;   // Start Engine erase from this address
-    localparam RAM_WRAPPER_ERASE_END_ADDR = `MSFT_SP_CIRAM0_ERASE_END_ADDR;	                // full erase up to this address
-    localparam RAM_WRAPPER_ENGN_ERASE_END_ADDR = `MSFT_SP_CIRAM0_ENGN_ERASE_END_ADDR;	    // engine erase up to this address
+    localparam RAM_WRAPPER_SIZE         = `MSFT_SP_CIRAM0_SIZE;				                                        // total number of bytes; must be addressable using 'ADDR_WIDTH' bits of addresses
+    localparam RAM_WRAPPER_SUPPORT_SECDED = `MSFT_SP_CIRAM0_SUPPORT_SECDED;                                         // Set to 1 for enabling SECDED scheme. Set to 0 for DED scheme.
+    localparam RAM_WRAPPER_SUPPORT_RMW  = `MSFT_SP_CIRAM0_SUPPORT_RMW;                                              // support Read-Mod-Write
+    localparam RAM_WRAPPER_SUPPORT_INJECT = `MSFT_SP_CIRAM0_SUPPORT_INJECT;                                         // support error inject
+    localparam RAM_WRAPPER_SUPPORT_ENGN_ERASE = 1;                                                                  // support engine erase for this instance
+    localparam RAM_WRAPPER_SUPPORT_ERASE = `MSFT_SP_CIRAM0_SUPPORT_ERASE;                                           // support creg erase for this instance
+    localparam RAM_WRAPPER_SUPPORT_WRITE_BACK = `MSFT_SP_CIRAM0_SUPPORT_WRITE_BACK;                                 // Set to enable write back on correctable errors during read.
+    localparam RAM_WRAPPER_RMW_PIPELINE = `MSFT_SP_CIRAM0_RMW_PIPELINE;                                             // 0 - No pipelining on RMW writes; 1 - One pipeline stage on RMW writes
+    localparam RAM_WRAPPER_PARITY_EN    = `MSFT_SP_CIRAM0_PARITY_EN;                                                // Parity enable for engine input signals and internal flops that are not ECC protected.
+    localparam RAM_WRAPPER_ERASE_START_ADDR = `MSFT_SP_CIRAM0_ERASE_START_ADDR;                                     // Start erase from this address
+    localparam RAM_WRAPPER_ENGN_ERASE_START_ADDR = `MSFT_SP_CIRAM0_ENGN_ERASE_START_ADDR;                           // Start Engine erase from this address
+    localparam RAM_WRAPPER_ERASE_END_ADDR = `MSFT_SP_CIRAM0_ERASE_END_ADDR / (RAM_WRAPPER_DATA_WIDTH/8);	        // full erase up to this address
+    localparam RAM_WRAPPER_ENGN_ERASE_END_ADDR = `MSFT_SP_CIRAM0_ENGN_ERASE_END_ADDR / (RAM_WRAPPER_DATA_WIDTH/8);	// engine erase up to this address
 
 
 
