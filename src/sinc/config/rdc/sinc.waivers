@@ -1,0 +1,1 @@
+#waive_violation -app RDC -add SETUP_CLOCK_GROUP_MISSING_W1 -tag "SETUP_CLOCK_GROUP_MISSING" -filter {(ClkType == "Primary Clock") AND (SdcClkName == "clk_i")} -comment "sinc: Only one clock in design"

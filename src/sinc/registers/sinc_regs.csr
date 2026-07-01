@@ -1,0 +1,1446 @@
+property word_size = 4 bytes;
+
+///////////////////////////////////////////////////////
+// REGISTER TEMPLATE
+///////////////////////////////////////////////////////
+
+field field_template ( 
+    string title            = "Template Field Title",
+	string desc 		    = "Template Field Description",
+	integer size			= 1,
+    bool read_access        = true,
+	bool write_access		= false,
+	string field_type		= "",
+	string read_effect 		= "",
+	integer reset_value		= 1'b0,
+	string reset 			= "",
+    bool clear              = false,
+	bool input_value		= false,
+	bool load_enable        = false,
+    bool write_enable       = false,
+    bool trigger_port       = false,
+    string protection       = "none"
+) {
+	property title 			= title;
+	property description    = desc;
+	property width 			= size;
+    property read_access    = read_access;
+    property write_access   = write_access;
+    property field_type     = field_type;
+    property read_effect    = read_effect;
+    property reset_value    = reset_value;
+    property reset          = reset;
+    property clear          = clear;
+    property input_value    = input_value;
+    property load_enable    = load_enable;
+    property write_enable   = write_enable;
+    property trigger_port   = trigger_port;
+    property protection     = protection;
+};
+
+register reg_template ( 
+    string reg_title        = "",
+	string reg_desc         = "",
+    string reg_name         = "",
+    integer reg_size        = 32,
+    bool register_output_port = false,
+    bool register_written_port = false,
+    string field_name       = "",
+    string field_title      = "",
+	string field_type       = "",
+	string field_desc       = "",
+    bool field_clear        = false,
+    bool read_access        = true,
+    bool write_access       = false,
+	string read_effect 		= "",
+	string reset 			= "",
+	bool input_value		= false,
+	bool load_enable        = false,
+    bool write_enable       = false,
+    bool trigger_port       = false,
+	integer field_size      = 1,
+	integer reset_value,
+    string protection       = "none"
+) {
+	property title = reg_title;
+	property description = reg_desc;
+    property register_output_port   = register_output_port;
+    property register_written_port  = register_written_port;
+	
+    field_template {field_name} ( 
+        title               = field_title,
+		desc                = field_desc,
+		size                = field_size,
+        read_access         = read_access,
+        write_access        = write_access,
+        field_type          = field_type,
+        read_effect         = read_effect,
+		reset_value         = reset_value,
+        reset               = reset,
+        clear               = field_clear,
+        input_value         = input_value,
+        load_enable         = load_enable,
+        write_enable        = write_enable,
+        trigger_port        = trigger_port,
+        protection          = protection
+    );
+};
+
+///////////////////////////////////////////////////////
+// ADDRESS MAP
+///////////////////////////////////////////////////////
+
+addressmap {
+
+    property size = 1024;
+    property title = "Secure Instruction Cache Register/s";
+    property description = "Registers in Secure Instruction Cache";
+    property reserved_value = "zero";
+    property addressmap_read_access_port = "csr_rd_en";
+    property addressmap_write_access_port = "csr_wr_en";
+    property addressmap_address_port = "csr_addr";
+    property addressmap_write_data_port = "csr_wdata";
+    property addressmap_read_data_port = "csr_rdata";
+    property addressmap_ready_port = "csr_rdy";
+    property addressmap_reset_timing = "asynchronous";
+    property addressmap_reset_active = "low";
+    property addressmap_check_address = true;
+    property addressmap_check_write_access = true;
+    property addressmap_check_read_access = true;
+    property addressmap_error_port = "csr_err";
+    property addressmap_parity_error_port = "csr_err_parity";
+
+    register {
+
+        property title = "Secure Instruction Cache Command Register";
+        property description = "FW uses this register to execute various FW commands in Secure Instruction Cache, one at a time. \
+        \nFW must program this register as one-hot encoded. When set, FW must clear test_en first and then set another bit as required.\
+        \nAfter initiating the command, Status register can be read to know the status of the FW command.";
+        property register_output_port   = true;
+        property register_written_port  = true;
+
+        field_template set_init_state (title = "Set to Initialization state",
+			desc = "It initiates SInC command to transition from Disabled to Initialization state. HW clears this bit after \
+            transition completes or SInC encounters an error. \
+            \nOnly allowed in Disabled state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template set_cache_active_state (title = "Set to Cache-active state",
+			desc = "It initiates SInC command to transition from Initialization to Cache-active state. HW clears this bit after \
+            transition completes or SInC encounters an error. \
+            \nOnly allowed in Initialization state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template sinc_reset (title = "SInC reset",
+			desc = "If sinc_reset_disabled is set to 0 in status register, setting this bit will cause SInC to erase the cache IRAM, erase VTAG, clear the locally stored key, reset the MPU permissions and move to Disabled state. \
+            \nHW clears this bit after transition completes or SInC encounters an error. \
+            \nIf sinc_reset_disabled is set, writing this bit will result in invalid command error.\
+            \nOnly allowed in Initialization, Cache-Active and Cache-Failed state",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template sinc_reinit (title = "SInC Re-Initialization",
+			desc = "If sinc_reinit_disabled is set to 0 in status register, setting this bit will cause SInC \
+            to erase the cache IRAM, erase VTAG and move to Initialization state. The locally stored key and the MPU permissions are preserved. \
+            \nHW clears this bit after transition completes or SInC encounters an error. \
+            \nIf sinc_reinit_disabled is set, writing this bit will result in invalid command error.\
+            \nOnly allowed in Cache-Active state",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template encr_block (title = "Encrypt block",
+			desc = "Initiates block encryption operation by reading the blocks from Sharedram, encrypting it and writing it along with authentication tags to external memory. \
+            \nIt uses block_encr_num, num_of_blocks and block_encr_addr registers to execute this command. \
+            \nHW clears this bit after all blocks and authentication tags are written to external memory. \
+            \nOnly allowed in Initialization state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template disable_reset (title = "Disable reset",
+			desc = "It sets the sinc_reset_disabled status to 1 and doesn't allow SInC reset command until next reset. \
+            \nHW clears this bit after one clock cycle.\
+            \nOnly allowed in Disabled, Initialization and Cache-Active state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template disable_reinit (title = "Disable Re-Initialization",
+			desc = "It sets the sinc_reinit_disabled status to 1 and doesn't allow SInC Re-Initialization command until next reset. \
+            \nHW clears this bit after one clock cycle.\
+            \nOnly allowed in Disabled, Initialization and Cache-Active state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+        field_template aes_test_en (title = "Test enable",
+			desc = "Set this bit to enable AES test mode. \
+            \nFW must clear this bit to exit out of AES test mode unless an error is encountered. \
+            \nHW clears this bit if an error is encountered while initiating or executing AES test mode.\
+            \nThis bit must be cleared before setting any other bit in cmd register.\
+            \nOnly allowed in Disabled state.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = false,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+
+    } [0x0] cmd;
+
+    register {
+
+        property title = "Block number register";
+        property description = "Block number of the first block to be encrypted in encrypt block command.\
+        \nBlock number increments by 1 for every subsequent cache blocks to be encrypted.\
+        \nWrites to this register are discared if SInC is not in Disabled or Initialization state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template block_encr_num (title = "Block encryption number",
+			desc = "Block number",
+			size = 24,
+			field_type = "configuration",
+			write_access = true,
+            write_enable = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 24'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } block_encr_num;
+
+    register {
+
+        property title = "Number of blocks register";
+        property description = "Number of blocks to be encrypted in encrypt block command.\
+        \nWrites to this register are discared if SInC is not in Disabled or Initialization state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template num_of_blocks (title = "Number of blocks",
+			desc = "Number of blocks to be encrypted",
+			size = 12,
+			field_type = "configuration",
+			write_access = true,
+            write_enable = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 12'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } num_of_blocks;
+
+    register {
+
+        property title = "Block encryption address register";
+        property description = "AXI address targetting Sharedram from where the cache block will be fetched in an encrypt block command. \
+        \nSubsequent cache blocks are read from next contiguous location.\
+        \nWrites to this register are discared if SInC is not in Disabled or Initialization state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template block_encr_addr (title = "Block encryption address",
+			desc = "AXI address targetting Sharedram",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            write_enable = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } block_encr_addr;
+
+    register {
+
+        property title = "Block encryption key register";
+        property description = "KSU key slot number from where SInC will fetch the block encryption key for encryption and decryption. \
+        \nWrites to this register are discared if SInC is not in Disabled state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template block_encr_key (title = "Block encryption key",
+			desc = "KSU key slot number",
+			size = 16,
+			field_type = "configuration",
+			write_access = true,
+            write_enable = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 16'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } block_encr_key;
+
+    // The below IV registers are defined as userdefined registers so that they can be put under retention domain
+    
+    userdefined register {
+
+        property title = "AES GCM IV Nonce 0 register";
+        property description = "Contains bits[31:0] of AES-GCM 96-bit IV Nonce value. \
+        \nWrites to this register are discared if SInC is not in Disabled state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_iv_nonce_0 (title = "AES GCM IV Nonce 0",
+			desc = "Bits[31:0] of AES-GCM 96-bit IV Nonce value.",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_iv_nonce_0;
+
+    userdefined register {
+
+        property title = "AES GCM IV Nonce 1 register";
+        property description = "Contains bits[63:32] of AES-GCM 96-bit IV Nonce value. \
+        \nWrites to this register are discared if SInC is not in Disabled state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_iv_nonce_1 (title = "AES GCM IV Nonce 1",
+			desc = "Bits[63:32] of AES-GCM 96-bit IV Nonce value.",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_iv_nonce_1;
+
+    userdefined register {
+
+        property title = "AES GCM IV Nonce 2 register";
+        property description = "Contains bits [95:64] of AES-GCM 96-bit IV Nonce value.\
+        \nOnly Bits [7:0] of this register are used during AES in functional mode i.e., encryption or decryption.\
+        \nBits [31:0] of this register are used during AES in test mode.\
+        \nWrites to this register are discared if SInC is not in Disabled state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_iv_nonce_2 (title = "AES GCM IV Nonce 2",
+			desc = "Bits[71:64] of AES-GCM 96-bit IV Nonce value.",
+			size = 8,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 8'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template aes_iv_nonce_2_test (title = "AES GCM IV Nonce 2 test mode",
+			desc = "Bits[95:72] of AES-GCM 96-bit IV Nonce value, used only in AES test mode.",
+			size = 24,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 24'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_iv_nonce_2;
+
+    userdefined register {
+
+        property title = "External block base address register";
+        property description = "Base address targetting DMB, to route transactions to/from external memory. This base address itself points to block 0 in external memory. \
+        The lower bits of this register must be set to 0 as the block base address must be aligned to block boundary. The number of bits tied low depends on the cache block size. \
+        \nWrites to this register are discared if SInC is not in Disabled or Initialization state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template ext_block_base_addr (title = "External cache block base address",
+			desc = "Base address targetting DMB to access data in external memory. This base address corresponds to cache block 0 and corresponding blocks are stored contiguously.",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } ext_block_base_addr;
+
+    userdefined register {
+
+        property title = "External authentication tag base address register";
+        property description = "Base address targetting DMB, to route transactions to/from external memory. This base address itself points to authentication tag for block 0 in external memory. \
+        The lower 4 bits of this register must be set to 0 as the authentication tag base address must be aligned to tag size (16B). \
+        \nWrites to this register are discared if SInC is not in Disabled or Initialization state.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template ext_auth_tag_base_addr (title = "External authentication tag base address",
+			desc = "Base address targetting DMB to access authentication tag in external memory. This base address corresponds to authentication tag \
+            for cache block 0 and corresponding authentication tags are stored contiguously.",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } ext_auth_tag_base_addr;
+
+
+    register {
+
+        property title  = "Secure Instruction Cache Status register";
+        property description = "Secure Instruction Cache Status register";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template state (
+            title = "SInC state",
+            desc = "0x00 - Disabled\
+            \n0x0F - Initialization\
+            \n0xF0 - Cache-active\
+            \n0xFF - Cache-failed",
+            size = 8,
+            field_type = "status",
+            write_access = false,
+            load_enable = false,
+            read_effect = "none",
+            reset_value = 8'h0,
+            reset = "reset",
+            input_value = false);
+
+        field_template sinc_reset_disabled (
+            title = "SInC re-initialization disabled",
+            desc = "0 - SInC reinit command is allowed\
+            \n1 - SInC reinit command is not allowed",
+            size = 1,
+            field_type = "status",
+            write_access = false,
+            load_enable = false,
+            read_effect = "none",
+            reset_value = 1'b0,
+            reset = "reset",
+            input_value = false);
+
+        field_template sinc_reinit_disabled (
+            title = "SInC re-initialization disabled",
+            desc = "0 - SInC reinit command is allowed\
+            \n1 - SInC reinit command is not allowed",
+            size = 1,
+            field_type = "status",
+            write_access = false,
+            load_enable = false,
+            read_effect = "none",
+            reset_value = 1'b0,
+            reset = "reset",
+            input_value = false);
+
+        field_template cmd_in_progress (
+            title = "Command in progress",
+            desc = "SInC is processing a FW command or a fetch block request from CIU due to cache miss.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "none",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template cmd_success (
+            title = "Command completed successfully",
+            desc = "SInC completed FW command successfully. NOTE: This bit is not set when fetch block request is completed.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template cmd_failed (
+            title = "Command failed",
+            desc = "FW command or fetch block request failed. See other bits to know the reason of command failure.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template invalid_cmd_err (
+            title = "Invalid command error",
+            desc = "Invalid command error. Incorrect programming of cmd register OR \
+            \nCommand requested is not supported in current sinc state OR \
+            \nCommand is disabled OR \
+            \nAES test mode configuration is set incorrectly.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template rng_seed_r_err (
+            title = "RNG seed read error.",
+            desc = "SInC failed to read the seed from RNG to seed AES.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template key_fetch_err (
+            title = "Key fetch failed.",
+            desc = "SInC failed to fetch the key from KSU.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template cache_block_r_err (
+            title = "Read cache block error",
+            desc = "SInC failed to read the cache block during encrypt block or fetch block command.\
+            \nIn encrypt block comamnd, SInC reads cache block from Sharedram.\
+            \nIn fetch block command, SInC reads cache block from external memory.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template cache_block_w_err_encr_block (
+            title = "Write cache block error during encrypt block command",
+            desc = "SInC failed to write the cache block to external memory during encrypt block command.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template cache_block_w_err_fetch_block (
+            title = "Write cache block error during fetch block command",
+            desc = "SInC failed to write the cache block to CIRAM during fetch block command due to ongoing memory erase.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template auth_tag_r_err (
+            title = "Authentication tag read error",
+            desc = "SInC failed to read the authentication tag from external memory during fetch block command.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template auth_tag_chk_err (
+            title = "Authentication tag check error",
+            desc = "Generated authentication tag didn't match the expected authentication tag \
+            (fetched from external memory) during fetch block command.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template auth_tag_w_err (
+            title = "Authentication tag write error",
+            desc = "SInC failed to write the authentication tag to external memory during encrypt block command.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template aes_err (
+            title = "AES error",
+            desc = "AES in SInC encountered command fault error .",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+        field_template sinc_hw_fault (
+            title = "HW fault error in SInC",
+            desc = "HW fault error encountered in SInC. Possible reasons are FSM transitioning into \
+            na invalid state OR \
+            \nuncorrectable error encountered during CIRAM read.",
+            size = 1,
+            field_type = "configuration",
+            write_access = false,
+            load_enable = true,
+            read_effect = "clear",
+            reset_value = 1'h0,
+            reset = "reset",
+            input_value = true);
+
+    } status;
+
+    register {
+
+        property title = "Hit counter lower bits register";
+        property description = "Lower 32b of the hit counter value. The hit counter is the number of cache-hit events.\
+        \nHit counter is enabled only when hit_cntr_en bit is set in Performance counters control register. \
+        Counter is reset when hit_cntr_clr bit is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template hit_cntr_lower (title = "Hit counter lower bits",
+			desc = "Lower 32b of the hit counter value",
+			size = 32,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } hit_cntr_lower;
+
+    register {
+
+        property title = "Hit counter upper bits register";
+        property description = "Upper 16b of the hit counter value. The hit counter is the number of cache-hit events.\
+        \nHit counter is enabled only when hit_cntr_en is set to 1 in Performance counters control register. \
+        Counter is reset when hit_cntr_clr bit is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template hit_cntr_upper (title = "Hit counter upper bits",
+			desc = "Upper 16b of the hit counter value",
+			size = 16,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 16'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } hit_cntr_upper;
+
+    register {
+
+        property title = "Miss counter lower bits register";
+        property description = "Lower 32b of the miss counter value. The miss counter is the number of cache-miss events.\
+        \nMiss counter is enabled only when miss_cntr_en is set to 1 in Performance counters control register. \
+        Counter is reset when miss_cntr_clr bit is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template miss_cntr_lower (title = "Miss counter lower bits",
+			desc = "Lower 32b of the miss counter value",
+			size = 32,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } miss_cntr_lower;
+
+    register {
+
+        property title = "Miss counter upper bits register";
+        property description = "Upper 16b of the miss counter value. The miss counter is the number of cache-miss events.\
+        \nMiss counter is enabled only when miss_cntr_en is set to 1 in Performance counters control register. \
+        Counter is reset when miss_cntr_clr bit is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template miss_cntr_upper (title = "Miss counter upper bits",
+			desc = "Upper 16b of the miss counter value",
+			size = 16,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 16'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } miss_cntr_upper;
+
+    register {
+
+        property title = "Latency counter lower bits register";
+        property description = "Lower 32b of the latency counter value. The latency counter counts the number of clock cycles \
+        from when SInC initiated the DMA read to fetch block data to when last byte of block data is received. \
+        \nNote that the counter accumulates the count value for every cache-miss. \
+        \nLatency counter is enabled only when lat_cntr_en is set in Performance counters control register. \
+        Counter is reset when lat_cntr_clr is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template lat_cntr_lower (title = "Latency counter lower bits",
+			desc = "Lower 32b of the latency counter value",
+			size = 32,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } lat_cntr_lower;
+
+    register {
+
+        property title = "Latency counter upper bits register";
+        property description = "Upper 32b of the latency counter value. The latency counter counts the number of clock cycles \
+        from when SInC initiated the DMA read to fetch block data to when last byte of block data is received. \
+        \nNote that the counter accumulates the count value for every cache-miss. \
+        \nLatency counter is enabled only when lat_cntr_en is set in Performance counters control register. \
+        Counter is reset when lat_cntr_clr is set. It stops counting if it reaches the max value.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template lat_cntr_upper (title = "Latency counter upper bits",
+			desc = "Upper 16b of the latency counter value",
+			size = 16,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 16'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } lat_cntr_upper;
+
+    register {
+
+        property title = "Performance counters control register";
+        property description = "This register controls operation of the performance counter in SInC.";
+        property register_output_port   = true;
+        property register_written_port  = true;
+
+        field_template hit_cntr_en (title = "Hit counter enable",
+			desc = "Set to enable the hit counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template hit_cntr_clr (title = "Hit counter clear",
+			desc = "Set to reset/clear the hit counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template [7] miss_cntr_en (title = "Miss counter enable",
+			desc = "Set to enable the miss counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template [8] miss_cntr_clr (title = "Miss counter clear",
+			desc = "Set to reset/clear the miss counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template [14] lat_cntr_en (title = "Latency counter enable",
+			desc = "Set to enable the latency counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template [15] lat_cntr_clr (title = "Latency counter clear",
+			desc = "Set to reset/clear the latency counter.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } perf_cntr_ctrl;
+
+    register {
+
+        property title = "AES test data input 0 register";
+        property description = "Bits 31:0 of AES input block in test mode. \
+        Load this register before setting data_in_vld in AES test control register.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_test_data_in_0 (title = "AES test data input 0",
+			desc = "Bits 31:0 of AES input block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_test_data_in_0;
+
+    register {
+
+        property title = "AES test data input 1 register";
+        property description = "Bits 63:32 of AES input block in test mode. \
+        Load this register before setting data_in_vld in AES test control register.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_test_data_in_1 (title = "AES test data input 1",
+			desc = "Bits 63:32 of AES input block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_test_data_in_1;
+
+    register {
+
+        property title = "AES test data input 2 register";
+        property description = "Bits 95:64 of AES input block in test mode. \
+        Load this register before setting data_in_vld in AES test control register.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_test_data_in_2 (title = "AES test data input 2",
+			desc = "Bits 95:64 of AES input block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_test_data_in_2;
+
+    register {
+
+        property title = "AES test data input 3 register";
+        property description = "Bits 127:96 of AES input block in test mode. \
+        Load this register before setting data_in_vld in AES test control register.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template aes_test_data_in_3 (title = "AES test data input 3",
+			desc = "Bits 127:96 of AES input block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_test_data_in_3;
+
+    register {
+
+        property title = "AES test data output 0 register";
+        property description = "Bits 31:0 of AES output block in test mode. \
+        This register contains valid data when data_out_vld is set in AES test status register.\
+        \nHW clears this register when data_out_ack is set.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template aes_test_data_out_0 (title = "AES test data output 0",
+			desc = "Bits 31:0 of AES output block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+    
+    } aes_test_data_out_0;
+
+    register {
+
+        property title = "AES test data output 1 register";
+        property description = "Bits 63:32 of AES output block in test mode. \
+        This register contains valid data when data_out_vld is set in AES test status register.\
+        \nHW clears this register when data_out_ack is set.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template aes_test_data_out_1 (title = "AES test data output 1",
+			desc = "Bits 63:32 of AES output block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+    
+    } aes_test_data_out_1;
+
+    register {
+
+        property title = "AES test data output 2 register";
+        property description = "Bits 95:64 of AES output block in test mode. \
+        This register contains valid data when data_out_vld is set in AES test status register.\
+        \nHW clears this register when data_out_ack is set.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template aes_test_data_out_2 (title = "AES test data output 2",
+			desc = "Bits 95:64 of AES output block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+    
+    } aes_test_data_out_2;
+
+    register {
+
+        property title = "AES test data output 3 register";
+        property description = "Bits 127:96 of AES output block in test mode. \
+        This register contains valid data when data_out_vld is set in AES test status register.\
+        \nHW clears this register when data_out_ack is set.";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template aes_test_data_out_3 (title = "AES test data output 3",
+			desc = "Bits 127:96 of AES output block in test mode",
+			size = 32,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 32'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+    
+    } aes_test_data_out_3;
+
+    register {
+
+        property title = "AES test control register";
+        property description = "This register enables AES in test mode and controls its input/output parameters.";
+        property register_output_port   = true;
+
+        field_template mode (title = "AES mode",
+			desc = "Sets AES mode when cfg_key_iv_vld is set.\
+            \n4'h1 - ECB\
+            \n4'h7 - GCM\
+            \nWrite to this field is ignored if cfg_key_iv_rdy is not set.",
+			size = 4,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 4'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template dir (title = "AES direction",
+			desc = "Sets AES direction when cfg_key_iv_vld is set.\
+            \n1 - Ecnrypt\
+            \n0 - Decrypt\
+            \nWrite to this field is ignored if cfg_key_iv_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template key_len (title = "AES key length",
+			desc = "Sets AES key length when cfg_key_iv_vld is set.\
+            \n2'h0 - Reserved\
+            \n2'h1 - Reserved\
+            \n2'h2 - 256b key\
+            \n2'h3 - Reserved\
+            \nWrite to this field is ignored if cfg_key_iv_rdy is not set.",
+			size = 2,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 2'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template reuse_key (title = "Reuse AES key",
+			desc = "When set along with cfg_key_iv_vld bit, SInC won't read a new key from KSU and \
+            keep using previously loaded key.\
+            \nWrite to this field is ignored if cfg_key_iv_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template cfg_key_iv_vld (title = "AES config, key and IV valid",
+			desc = "Wait for cfg_key_iv_rdy = 1. Once cfg_key_iv_rdy is set, setting this bit will do following things. \
+            \n1. SInC loads mode and dir in AES.\
+            \n2. SInC reads the key from KSU key slot # based on value in block encryption key register, \
+            stores it locally and loads it in AES.\
+            \nIf reuse_key is set, SInC skips reading the key from KSU and reuses locally stored key (that was fetched earlier).\
+            \n3. SInC loads IV from IV nonce* registes in AES.\
+            \nHW clears this bit after one clock cycle of cfg_key_iv_vld and cfg_key_iv_rdy handshake.\
+            \nWrite to this field is ignored if cfg_key_iv_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = true,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = true,
+            trigger_port = false);
+
+        field_template data_in_vld (title = "Test data input valid",
+			desc = "Wait for data_in_rdy = 1. Once data_in_rdy is set, setting this field causes SInC to load data from AES test data in 0..3 as AES input block.\
+            \nHW clears this bit after one clock cycle of data_in_vld and data_in_rdy handshake.\
+            \nWrite to this field is ignored if data_in_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = true,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = true,
+            trigger_port = false);
+
+        field_template data_in_byte_cnt (title = "Test data input byte count",
+			desc = "When set along with data_in_vld and data_in_last is set, this field indicates how many bytes are valid in AES test data in 0..3.\
+            \nWrite to this field is ignored if data_in_rdy is not set.",
+			size = 5,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 4'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template data_in_last (title = "Last test data input",
+			desc = "When set along with data_in_vld, it indicates the input data block is the last input block.\
+            \nWrite to this field is ignored if data_in_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template data_in_aad_sel (title = "Data in select input",
+			desc = "When set along with data_in_vld, it indicates whether the input data block is PT/CT or AAD.\
+            This version does not support AAD.\
+            \n1 - Reserved\
+            \n0 - PT/CT\
+            \nWrite to this field is ignored if data_in_rdy is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template data_out_ack (title = "Test data output acknowledge",
+			desc = "Wait for data_out_vld = 1. Once data_out_vld is set, setting this bit indicates that the AES test data out 0..3 registers have been read by FW. \
+            \nHW clears this field after one clock cycle data_out_vld and data_out_ack handshake.\
+            \nWrite to this field is ignored if data_out_vld is not set.",
+			size = 1,
+			field_type = "configuration",
+			write_access = true,
+            read_access = true,
+			load_enable = false,
+            write_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = false,
+            trigger_port = false);
+    
+    } aes_test_ctrl;
+
+    register {
+
+        property title = "AES test status register";
+        property description = "This register contains the status of AES and its parameters while AES is in test mode.";
+        property register_output_port   = true;
+        property register_written_port  = false;
+
+        field_template cfg_key_iv_rdy (title = "AES config, key and IV ready",
+			desc = "Indicates that AES is ready to receive AES config, key and IV in AES test mode. \
+            \nIf this field is set, cfg_key_iv_vld field can be set to load new configuration, key and IV into AES.",
+			size = 1,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template data_in_rdy (title = "Data input ready",
+			desc = "Indicates that AES is ready to receive input data block in AES test mode. \
+            If this field is set, data_in_vld can be set to load new input block.",
+			size = 1,
+			field_type = "status",
+			write_access = false,
+            read_access = true,
+			load_enable = false,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+			input_value = false,
+            trigger_port = false);
+
+        field_template data_out_vld (title = "Data output valid",
+			desc = "Indicates that AES test data out 0..3 registers contain valid data. \
+            \nIf this field is set, data_out_ack field can be set after reading the data out 0..3 \
+            registers to acknowledge that output test data has been read.",
+			size = 1,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+
+        field_template tag_out (title = "Mux select for AES test data out 0..3 registers",
+			desc = "Indicates whether the AES test data out 0..3 registers contain output data block or authentication tag.\
+            \n0 - Output data block\
+            \n1 - Authentication tag",
+			size = 1,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "none",
+			reset_value = 1'h0,
+			reset = "reset",
+            clear = true,
+			input_value = true,
+            trigger_port = false);
+    
+    } aes_test_status;
+
+    register {
+
+        property title = "Encrypt block status register";
+        property description = "Shows status of encrypt block command";
+        property register_output_port   = false;
+        property register_written_port  = false;
+
+        field_template num_of_blocks_encr (title = "Number of block successfully encrypted",
+			desc = "Shows number of blocks successfully encrypted before encrypt block command failed. May be used for debug purposes.\
+            \nThis field remains unchanged if encrypt command successfully completes.",
+			size = 12,
+			field_type = "configuration",
+			write_access = false,
+            read_access = true,
+			load_enable = true,
+			read_effect = "clear",
+			reset_value = 12'h0,
+			reset = "reset",
+			input_value = true,
+            trigger_port = false);
+    
+    } encr_block_status;
+
+    // register {
+ 
+    //     property title = " register";
+    //     property description = "";
+    //     property register_output_port   = true;
+    //     property register_written_port  = false;
+ 
+    //     field_template reg_name (title = "",
+	// 		desc = "",
+	// 		size = 32,
+	// 		field_type = "configuration",
+	// 		write_access = true,
+    //         read_access = false,
+	// 		load_enable = false,
+	// 		read_effect = "none",
+	// 		reset_value = 32'h0,
+	// 		reset = "reset",
+	// 		input_value = false,
+    //         trigger_port = false);
+    // 
+    // } reg_name;
+
+} sinc_regs;
+
+#ifdef INCL_COMPONENT
+component {
+   property title = "Secure Instruction Cache";
+   property vendor_name = "Microsoft";
+   SINC_ADDRMAP sinc;
+} sinc_component;
+#endif

@@ -1,0 +1,8 @@
++incdir+${COMPILE_ROOT}/src/sinc/include
+
+${COMPILE_ROOT}/src/ram_wrapper/rtl/edc_gen.sv
+${COMPILE_ROOT}/src/ram_wrapper/rtl/mem_erase.sv
+${COMPILE_ROOT}/src/ram_wrapper/rtl/mem_rmw.sv
+${COMPILE_ROOT}/src/ram_wrapper/rtl/secded_dec.sv
+${COMPILE_ROOT}/src/ram_wrapper/rtl/secded_enc.sv
+${COMPILE_ROOT}/src/ram_wrapper/rtl/ram_wrapper.sv

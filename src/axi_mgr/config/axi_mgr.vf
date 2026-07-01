@@ -1,0 +1,3 @@
++incdir+${COMPILE_ROOT}/src/sinc/include
+
+${COMPILE_ROOT}/src/axi_mgr/rtl/axi_mgr.v

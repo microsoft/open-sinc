@@ -1,0 +1,37 @@
+# Copyright (c) Microsoft Corporation and contributors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# File          : bom.yml
+# Description   : microsoft internal compile file describing IP groups, file lists, and dependencies for open_sinc
+
+schema_version: '1.1.0'
+
+---
+name: ip_gpaes_rtl
+requires:
+  - open_sinc::ip_aes_engine_rtl
+logical_groups:
+  rtl:
+    incdirs:
+      - ${COMPILE_ROOT}/../sinc/include
+    files:
+      - ${COMPILE_ROOT}/rtl/gp_aes_pkg.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_gfmac_16_128.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_gfm_128_128.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_inc32.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_ghash_ctrl.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_ghash.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_mode.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes_core.sv
+      - ${COMPILE_ROOT}/rtl/gp_aes.sv
+    tops: [gp_aes]

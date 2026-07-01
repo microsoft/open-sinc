@@ -1,0 +1,30 @@
+-f ${COMPILE_ROOT}/src/std_cells/config/std_cells.vf
+-f ${COMPILE_ROOT}/src/ram_wrapper/config/ram_wrapper.vf
+-f ${COMPILE_ROOT}/src/axi_mgr/config/axi_mgr.vf
+-f ${COMPILE_ROOT}/src/axi_sub/config/axi_sub.vf
+-f ${COMPILE_ROOT}/src/gp_aes/config/gp_aes.vf
+-f ${COMPILE_ROOT}/src/mpu/config/mpu.vf
+
++incdir+${COMPILE_ROOT}/src/sinc/include
++incdir+${COMPILE_ROOT}/src/aes/include
+
+${COMPILE_ROOT}/src/sinc/rtl/sinc_regs.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_pkg.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_ciu.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_ciu_ctrl.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_ciu_vtag.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_ciu_vtag_ret.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_ciu_mpu_ret.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_axi_sub_checker.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_axi_sub_wrap.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_reg_ctrl_ret.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_reg_ctrl.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_fifo.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_ctrl_ret.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_ctrl.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_crypto_wrap_ctrl_ret.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_crypto_wrap_ctrl.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_crypto_wrap.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu_dma.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_cmu.sv
+${COMPILE_ROOT}/src/sinc/rtl/sinc_top.sv

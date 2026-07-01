@@ -1,0 +1,126 @@
+#####################################################################################################
+# Module: hsp_wrapper.v
+#####################################################################################################
+
+upf_version 3.0
+set_design_attributes -elements {.} -attribute enable_bias TRUE
+
+#set_scope /
+
+#if { [file exists [file dirname [info script]]/upf_env.tcl] } {source [file dirname [info script]]/upf_env.tcl }
+
+# Entire blocks for retention
+set SINC_RET_LIST {     \
+                        u_sinc_cmu/u_cmu_ctrl/u_sinc_cmu_ctrl_ret \
+                        u_sinc_cmu/u_reg_ctrl/u_sinc_cmu_reg_ctrl_ret \
+                        u_sinc_cmu/u_crypto_wrap/u_crypto_wrap_ctrl/u_sinc_cmu_crypto_wrap_ctrl_ret \
+                        u_sinc_ciu/u_ciu_vtag/u_vtag_ret \
+                        u_sinc_ciu/u_mpu_ret \
+                    }
+
+create_supply_port VDD -direction in
+create_supply_port VDD_GATED -direction in
+create_supply_port VSS -direction in
+
+create_supply_net VDD
+create_supply_net VDD_GATED
+create_supply_net VSS
+
+connect_supply_net VDD -ports VDD
+connect_supply_net VDD_GATED -ports VDD_GATED
+connect_supply_net VSS -ports VSS
+
+create_supply_set SS_VDD_VSS       -function {power VDD}       -function {ground VSS} -function {nwell VDD} -function {pwell VSS}
+create_supply_set SS_VDD_GATED_VSS -function {power VDD_GATED} -function {ground VSS} -function {nwell VDD} -function {pwell VSS}
+
+create_power_domain PD_GATED -elements {.} -supply {primary SS_VDD_GATED_VSS}
+
+add_power_state -supply SS_VDD_VSS \
+                -state {AON_ON -supply_expr {power == {FULL_ON 0.75} && ground == {FULL_ON 0.0}} -simstate NORMAL} \
+                -state {AON_OFF -supply_expr {power == {OFF} && ground == {FULL_ON 0.0}} -simstate CORRUPT}
+add_power_state -supply SS_VDD_GATED_VSS \
+                -state {GATED_ON -supply_expr {power == {FULL_ON 0.75} && ground == {FULL_ON 0.0}} -simstate NORMAL} \
+                -state {GATED_OFF -supply_expr {power == {OFF} && ground == {FULL_ON 0.0}} -simstate CORRUPT}
+                
+create_power_state_group PSG_SINC
+
+add_power_state -group PSG_SINC \
+                -state ALL_ON       {-logic_expr {SS_VDD_VSS == AON_ON  && SS_VDD_GATED_VSS == GATED_ON }} \
+                -state ALL_OFF      {-logic_expr {SS_VDD_VSS == AON_OFF && SS_VDD_GATED_VSS == GATED_OFF}} \
+                -state SINC_GATED   {-logic_expr {SS_VDD_VSS == AON_ON && SS_VDD_GATED_VSS == GATED_OFF}}
+
+add_port_state VDD -state {VDD_ON 0.75} -state {VDD_OFF off}
+add_port_state VDD_GATED -state {VDD_GATED_ON 0.75 } -state {VDD_GATED_OFF off}
+add_port_state VSS -state {VSS_ON 0.0 }
+
+#####################################################################################################
+## Isolation rules
+#####################################################################################################
+
+set_isolation RULE_ISO_SINC_PD_GATED \
+              -clamp_value {0} \
+              -domain {PD_GATED} \
+              -isolation_supply_set {SS_VDD_VSS} \
+              -diff_supply_only {TRUE} \
+              -applies_to {outputs} 
+
+set_isolation_control RULE_ISO_SINC_PD_GATED \
+                       -domain {PD_GATED} \
+                       -isolation_signal {sinc_iso_en_i} \
+                       -location {self} \
+                       -isolation_sense {high}
+
+# NOTE: Uncomment and replace <YOUR_ISO_CELL_*> with isolation
+# cells from your target PDK.  These should be clamp-low isolation
+# cells in ascending drive strengths.
+#
+# use_interface_cell {RULE_ISO_SINC_PD_GATED_INTERFACE_CELL} \
+#                     -domain {PD_GATED} \
+#                     -strategy {RULE_ISO_SINC_PD_GATED} \
+#                     -lib_cells { \
+#                                  <YOUR_ISO_CELL_D1> \
+#                                  <YOUR_ISO_CELL_D2> \
+#                                  <YOUR_ISO_CELL_D4> \
+#                                }
+
+#####################################################################################################
+## Retention rules
+#####################################################################################################
+
+puts "retention rule on domain PD_AON"
+set_retention RULE_RET_SINC_PD_GATED \
+              -domain PD_GATED \
+              -elements $SINC_RET_LIST \
+              -use_retention_as_primary \
+              -retention_supply_set SS_VDD_VSS \
+              -save_signal {sinc_ret_en_ni high} \
+              -restore_signal {sinc_ret_en_ni low}
+
+# NOTE: Uncomment and replace <YOUR_RET_DFF_*> with retention
+# flip-flop cells from your target PDK.  Typical variants include:
+#   - Single-bit retention DFF (with/without reset, set, scan)
+#   - Multi-bit (2/4/6/8) retention DFF banks
+# The synthesis tool can auto-map these if this block is omitted.
+#
+# map_retention_cell RULE_RET_SINC_PD_GATED \
+#                    -domain PD_GATED \
+#                    -lib_cells { \
+#                                 <YOUR_RET_DFF_D1> \
+#                                 <YOUR_RET_DFF_D2> \
+#                                 <YOUR_RET_DFF_WITH_RESET_D1> \
+#                                 <YOUR_RET_DFF_WITH_RESET_D2> \
+#                                 <YOUR_RET_DFF_MB2_D1> \
+#                                 <YOUR_RET_DFF_MB4_D1> \
+#                               }
+
+#####################################################################################################
+## Level shifter rules
+#####################################################################################################
+
+# None
+
+#####################################################################################################
+## Power Switch rules
+#####################################################################################################
+
+# None

@@ -1,0 +1,5 @@
++incdir+${COMPILE_ROOT}/src/mpu/include
+
+${COMPILE_ROOT}/src/mpu/rtl/mpu_regs.sv
+${COMPILE_ROOT}/src/mpu/rtl/hsp_mpu.sv
+${COMPILE_ROOT}/src/mpu/rtl/mpu_wrapper.sv

@@ -1,0 +1,3 @@
+${COMPILE_ROOT}/src/std_cells/rtl/gtech_lib.sv
+${COMPILE_ROOT}/src/std_cells/rtl/c_clock_gate.sv
+${COMPILE_ROOT}/src/std_cells/rtl/c_clock_gate_ovr.sv

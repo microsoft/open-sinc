@@ -1,0 +1,13 @@
+-f ${COMPILE_ROOT}/src/aes/config/aes.vf
+
++incdir+${COMPILE_ROOT}/src/sinc/include
+
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_pkg.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_inc32.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_gfm_128_128.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_gfmac_16_128.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_ghash_ctrl.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_ghash.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_mode.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes_core.sv
+${COMPILE_ROOT}/src/gp_aes/rtl/gp_aes.sv
