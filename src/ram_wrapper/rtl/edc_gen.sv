@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : edc_gen.sv
-// Description  : Takes in 32 bits of data and up to 23 bits of address, and produces 6 bits
-//                of check bits based on a Hamming code. All done combinatorially.
+// File        : edc_gen.sv
+// Description : Error Detection Code (EDC) generator/checker. Takes in 32 bits
+//               of data and up to 23 bits of address and produces 6 check bits
+//               based on a Hamming code. All done combinatorially.
+
 
 module edc_gen (/*AUTOARG*/
    // Outputs

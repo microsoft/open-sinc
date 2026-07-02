@@ -11,8 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : mem_erase.sv
-// Description  : HW state machine to sequentially write '0's to the entire memory array.
+// File        : mem_erase.sv
+// Description : Hardware state machine to sequentially write '0's to the entire
+//               memory array.
+
 
 module mem_erase (/*AUTOARG*/
     // Outputs
@@ -27,7 +29,7 @@ module mem_erase (/*AUTOARG*/
     //-------------------------------------------
     parameter ADDR_WIDTH = 23;                          // up to 23 bits of address
     parameter DATA_WIDTH = 64;                          // must be either 32 or 64 bits of data
-    parameter ERASE_NBYTES = (DATA_WIDTH+7)/8;              // number of bytes to erase per cycle
+    parameter ERASE_NBYTES = DATA_WIDTH/8;              // number of bytes to erase per cycle
     parameter ERASE_END_ADDR = (2**ADDR_WIDTH)-ERASE_NBYTES; // full erase up to this address
     parameter SUPPORT_ENGN_ERASE = 0;                   // support engine erase for this instance
     parameter SUPPORT_ERASE = 0;                        // support erase for this instance

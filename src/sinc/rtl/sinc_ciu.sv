@@ -465,7 +465,7 @@ assign wdatachk_i = {(CACHE_DATA_WIDTH/32){1'b0}};
 ram_wrapper #(
     .ADDR_WIDTH            (RAM_WRAPPER_ADDR_WIDTH),
     .DATA_WIDTH            (RAM_WRAPPER_DATA_WIDTH),
-    .DEPTH                  (RAM_WRAPPER_SIZE),
+    .SIZE                  (RAM_WRAPPER_SIZE),
     .ERASE_START_ADDR      (RAM_WRAPPER_ERASE_START_ADDR),
     .ERASE_END_ADDR        (RAM_WRAPPER_ERASE_END_ADDR),
     .ENGN_ERASE_START_ADDR (RAM_WRAPPER_ENGN_ERASE_START_ADDR),
