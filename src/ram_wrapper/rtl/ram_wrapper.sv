@@ -11,9 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : ram_wrapper.sv
-// Description  : RAM wrapper that integrates EDC (error detection/correction), memory erase,
-//                and read-modify-write logic around a memory array.
+// File        : ram_wrapper.sv
+// Description : RAM wrapper integrating EDC (error detection code) and memory
+//               erase functionality.
 
 module ram_wrapper (/*AUTOARG*/
                     // Outputs
@@ -29,8 +29,9 @@ module ram_wrapper (/*AUTOARG*/
     // Parameters
     //-------------------------------------------
     parameter ADDR_WIDTH = 10;                          // can't be more than 23
-    parameter DEPTH = 4096;                              // total number of bytes, must be addressable using 'ADDR_WIDTH' bits of addresses
+    parameter SIZE = 4096;                              // total number of bytes, must be addressable using 'ADDR_WIDTH' bits of addresses
     parameter DATA_WIDTH = 32;                          // must be either 32 or 64 bits of data
+    parameter NUM_BYTES = DATA_WIDTH/8;                 // 4 or 8 bytes, depending on DATA_WIDTH
     parameter SUPPORT_SECDED = 1;                       // Set to 1 for enabling SECDED scheme. Set to 0 for DED scheme.
     parameter SUPPORT_RMW = 1;                          // support Read-Mod-Write
     parameter SUPPORT_INJECT = 1;                       // support error inject
@@ -39,33 +40,32 @@ module ram_wrapper (/*AUTOARG*/
     parameter SUPPORT_WRITE_BACK = 0;                   // Set to enable write back on correctable errors during read. When enabled, RMW_PIPELINE also applies to write back.
     parameter RMW_PIPELINE = 0;                         // 0 - No pipelining on RMW writes, 1 - One pipeline stage on RMW writes
     parameter PARITY_EN = 0;                            // Parity enable for engine input signals and internal flops that are not ECC protected. 0 - No parity protection 1- Parity protection enabled
-    parameter SUPPORT_ECC = 1;                          // support ECC. 0 - No ECC generation/checking, 1 - ECC generation/checking as specified by SUPPORT_SECDED
+
 
     //-------------------------------------------
     // Derived Parameters - Do not change manually
     //-------------------------------------------
-    localparam NUM_BYTES = (DATA_WIDTH+7)/8;                 // 4 or 8 bytes, depending on DATA_WIDTH
-    localparam CHECK_WIDTH = SUPPORT_ECC? ( SUPPORT_SECDED ? (7*((DATA_WIDTH+31)/32)) : (6*((DATA_WIDTH+31)/32))):0 ;
-    localparam CODE_WIDTH  = DATA_WIDTH + CHECK_WIDTH;
-    localparam NUM_LSBS = $clog2(NUM_BYTES-1);           // Number of address LSBs
-    
-    localparam ERASE_ADDR_WIDTH = ADDR_WIDTH; // Erase addr includes LSBs
-    localparam ERASE_NBYTES = 1;                 // number of bytes to erase per cycle
-
-    localparam C_ERRDATA = 32'hDEADBEEF; // this is what is returned as rdata if there is an EDC error
-    localparam ERR_CORR_WIDTH = $clog2(((DATA_WIDTH+31)/32)+1);
+    parameter CHECK_WIDTH = SUPPORT_SECDED ? (7*(DATA_WIDTH/32)) : (6*(DATA_WIDTH/32));
+    parameter CODE_WIDTH  = DATA_WIDTH + CHECK_WIDTH;
+    parameter NUM_LSBS = $clog2(NUM_BYTES-1);           // Number of address LSBs
+    parameter ERASE_ADDR_WIDTH = ADDR_WIDTH + NUM_LSBS; // Erase addr includes LSBs
+    parameter ERASE_NBYTES = NUM_BYTES;                 // number of bytes to erase per cycle
 
     //-------------------------------------------
     // Change below parameters as applicable
     //-------------------------------------------
     parameter ERASE_START_ADDR = 0;                     // Start erase from this address
     parameter ENGN_ERASE_START_ADDR = 0;                // Start Engine erase from this address
-    parameter ERASE_END_ADDR = DEPTH-1;       // full erase up to this address
-    parameter ENGN_ERASE_END_ADDR = DEPTH-1;  // engine erase up to this address
+    parameter ERASE_END_ADDR = SIZE-ERASE_NBYTES;       // full erase up to this address
+    parameter ENGN_ERASE_END_ADDR = SIZE-ERASE_NBYTES;  // engine erase up to this address
     parameter bit INVERSION [0:CODE_WIDTH-1] = '{CODE_WIDTH{1'b0}};     // Each element indicates whether the bit is inverted. Element index is bit position.
                                                                         // A element of index x with value 1 indicates that bit x is inverted.
     parameter int SHUFFLING [0:CODE_WIDTH-1] = '{CODE_WIDTH{1'b0}};     // Each element indicates the relative position that a bit is mapped to.
                                                                         // A element of index x with value y indicates that bit x is mapped to bit (x+y).
+
+
+    localparam C_ERRDATA = 32'hDEADBEEF; // this is what is returned as rdata if there is an EDC error
+    localparam ERR_CORR_WIDTH = $clog2((DATA_WIDTH/32)+1);
 
     //-------------------------------------------
     // to/from logic
@@ -76,7 +76,7 @@ module ram_wrapper (/*AUTOARG*/
     input logic [DATA_WIDTH-1:0]        wdata_i;
     input logic [ADDR_WIDTH-1:0]        addr_i;
     input logic                         en_i;
-    input logic [((DATA_WIDTH+7)/8)-1:0]    we_i;
+    input logic [(DATA_WIDTH/8)-1:0]    we_i;
 
     output logic [DATA_WIDTH-1:0]       rdata_o;
     output logic                        rdata_valid_o;
@@ -123,8 +123,8 @@ module ram_wrapper (/*AUTOARG*/
 
     // parity check and generation
     input logic [((ADDR_WIDTH+31)/32)-1:0] addrchk_i;
-    input logic [((DATA_WIDTH+31)/32)-1:0]   wdatachk_i;
-    output logic [((DATA_WIDTH+31)/32)-1:0]  rdatachk_o;
+    input logic [(DATA_WIDTH/32)-1:0]   wdatachk_i;
+    output logic [(DATA_WIDTH/32)-1:0]  rdatachk_o;
 
     // parity error
     output logic                        r_err_parity_o;
@@ -160,9 +160,9 @@ module ram_wrapper (/*AUTOARG*/
     logic                       edc_failed;
     logic                       rmw_edcfail;
     logic                       rmw_parity_err;
-    logic [((DATA_WIDTH+31)/32)-1:0] err_uncorr;
-    logic  [ERR_CORR_WIDTH-1:0] err_corr_total;
-    logic [((DATA_WIDTH+31)/32)-1:0] err_corr;
+    logic [(DATA_WIDTH/32)-1:0] err_uncorr;
+    logic  [$clog2((DATA_WIDTH/32)+1)-1:0] err_corr_total;
+    logic [(DATA_WIDTH/32)-1:0] err_corr;
     logic [DATA_WIDTH-1:0]      err_rdata;
 
     logic [CODE_WIDTH-1:0]      unscrambled_ram_di;
@@ -186,8 +186,8 @@ module ram_wrapper (/*AUTOARG*/
     logic                                       en_q;
     logic                                       en_q2;
     logic   [((ADDR_WIDTH+31)/32)-1:0]          wb_waddr_chk;
-    logic   [((DATA_WIDTH+31)/32)-1:0]               wb_wdata_chk;
-    logic   [((DATA_WIDTH+31)/32)-1:0]               wb_wdata_parity_chk;
+    logic   [(DATA_WIDTH/32)-1:0]               wb_wdata_chk;
+    logic   [(DATA_WIDTH/32)-1:0]               wb_wdata_parity_chk;
     logic                                       wb_addr_parity_chk;
     logic   [((ADDR_WIDTH+31)/32)-1:0]          wb_parity_chk;
     logic                                       rmw_addr_q2_parity_chk;
@@ -307,20 +307,14 @@ module ram_wrapper (/*AUTOARG*/
 
     genvar i;
     generate
-    for (i = 0; i < ((DATA_WIDTH+31)/32); i = i + 1) begin : encoding
-
- //       logic [NUM_LSBS-1:0] iedc_addr_lsbs;
- //       assign iedc_addr_lsbs = NUM_LSBS'(unsigned'(i) << 2); // Word address for this set of 32 bits
-
-        if(SUPPORT_ECC == 0) begin: no_ecc
-           if(i==0)
-              assign iedc_code = iedc_data;
-        end: no_ecc
-        else if(SUPPORT_SECDED == 1) begin: secded_scheme_gen
+    for (i = 0; i < (DATA_WIDTH/32); i = i + 1) begin : encoding
 
         logic [NUM_LSBS-1:0] iedc_addr_lsbs;
-        localparam ENC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 24) ? 24 : ADDR_WIDTH+NUM_LSBS;
         assign iedc_addr_lsbs = NUM_LSBS'(unsigned'(i) << 2); // Word address for this set of 32 bits
+
+        if(SUPPORT_SECDED == 1) begin: secded_scheme_gen
+
+        localparam ENC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 24) ? 24 : ADDR_WIDTH+NUM_LSBS;
 
             secded_enc #(.ADDR_WIDTH(ENC_ADDR_WIDTH))
             secded_enc (
@@ -332,11 +326,9 @@ module ram_wrapper (/*AUTOARG*/
             );
 
         end: secded_scheme_gen
-        else  begin: ded_scheme_gen
+        else begin: ded_scheme_gen
 
-        logic [NUM_LSBS-1:0] iedc_addr_lsbs;
         localparam ENC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 23) ? 23 : ADDR_WIDTH+NUM_LSBS;
-        assign iedc_addr_lsbs = NUM_LSBS'(unsigned'(i) << 2); // Word address for this set of 32 bits
 
             edc_gen #(.ADDR_WIDTH(ENC_ADDR_WIDTH),
                     .EDC_GEN(1))
@@ -487,22 +479,14 @@ module ram_wrapper (/*AUTOARG*/
 
     generate
         genvar j;
-        for (j = 0; j < ((DATA_WIDTH+31)/32); j = j + 1) begin : assign_oedc_expected_check_bits_for
-
-     //       logic [NUM_LSBS-1:0] oedc_addr_lsbs;
- //           assign oedc_addr_lsbs = NUM_LSBS'(unsigned'(j) << 2); // Word address for this set of 32 bits
-
-            if(SUPPORT_ECC ==  0) begin : no_ecc
-                assign err_corr[j] = 1'b0;
-                assign err_uncorr[j] = 1'b0;
-                if(j==0) 
-                    assign oedc_data = oedc_code;
-            end: no_ecc
-            else if(SUPPORT_SECDED == 1) begin: secded_scheme_check
+        for (j = 0; j < (DATA_WIDTH/32); j = j + 1) begin : assign_oedc_expected_check_bits_for
 
             logic [NUM_LSBS-1:0] oedc_addr_lsbs;
-            localparam DEC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 24) ? 24 : ADDR_WIDTH+NUM_LSBS;
             assign oedc_addr_lsbs = NUM_LSBS'(unsigned'(j) << 2); // Word address for this set of 32 bits
+
+            if(SUPPORT_SECDED == 1) begin: secded_scheme_check
+
+            localparam DEC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 24) ? 24 : ADDR_WIDTH+NUM_LSBS;
 
                 secded_dec #(.ADDR_WIDTH(DEC_ADDR_WIDTH))
                 secded_dec (
@@ -522,9 +506,7 @@ module ram_wrapper (/*AUTOARG*/
             else begin: ded_scheme_check
             // EDC generator at the output
 
-            logic [NUM_LSBS-1:0] oedc_addr_lsbs;
             localparam DEC_ADDR_WIDTH = ((ADDR_WIDTH+NUM_LSBS) > 23) ? 23 : ADDR_WIDTH+NUM_LSBS;
-            assign oedc_addr_lsbs = NUM_LSBS'(unsigned'(j) << 2); // Word address for this set of 32 bits
                 edc_gen   #(.ADDR_WIDTH(DEC_ADDR_WIDTH),
                             .EDC_GEN(0))
                 oedc_gen
@@ -548,7 +530,7 @@ module ram_wrapper (/*AUTOARG*/
     always_comb begin
         if(SUPPORT_SECDED == 1) begin
             err_corr_total = 'h0;
-            for(integer k = 0; k < ((DATA_WIDTH+31)/32); k=k+1) begin
+            for(integer k = 0; k < (DATA_WIDTH/32); k=k+1) begin
                 err_corr_total = err_corr_total + err_corr[k];
             end
         end
@@ -565,11 +547,8 @@ module ram_wrapper (/*AUTOARG*/
 
     generate
         genvar i_err;
-        for (i_err = 0; i_err < ((DATA_WIDTH+31)/32); i_err = i_err + 1) begin
-           if (i_err == (((DATA_WIDTH+31)/32)-1))
-               assign err_rdata[DATA_WIDTH-1:(i_err*32)] = C_ERRDATA[DATA_WIDTH-i_err*32-1:0];
-           else      
-               assign err_rdata[((i_err*32)+31)-:32] = C_ERRDATA;
+        for (i_err = 0; i_err < (DATA_WIDTH/32); i_err = i_err + 1) begin
+            assign err_rdata[((i_err*32)+31)-:32] = C_ERRDATA;
         end
     endgenerate
 
@@ -639,12 +618,12 @@ module ram_wrapper (/*AUTOARG*/
     begin : gen_PARITY
         // Parity checking and generation for address and data
         always_comb begin
-            for (integer pi = 0; pi < ((DATA_WIDTH+31)/32); pi = pi + 1) begin
+            for (integer pi = 0; pi < (DATA_WIDTH/32); pi = pi + 1) begin
                 // Generate parity for every 32 bits of valid read data
                 rdatachk_o[pi] = (~^rdata_o[pi*32 +: 32]);
 
                 // Check parity for every 32 bits of write data
-                wdata_parity_chk[pi] = (err_parity_chk_disable_i | (~en_i) | (~(|we_i[((DATA_WIDTH+7)/8)-1:0]))) ? 1'b0 : (wdatachk_i[pi] != ~^wdata_i[pi*32 +: 32]);
+                wdata_parity_chk[pi] = (err_parity_chk_disable_i | (~en_i) | (~(|we_i[(DATA_WIDTH/8)-1:0]))) ? 1'b0 : (wdatachk_i[pi] != ~^wdata_i[pi*32 +: 32]);
 
                 if (RMW_PIPELINE) begin : gen_wb_wdata_parity_err
                     wb_wdata_parity_chk[pi] = (err_parity_chk_disable_i | (~wb_en)) ? 1'b0 : (wb_wdata_chk[pi] != ~^wb_wdata[pi*32 +: 32]);

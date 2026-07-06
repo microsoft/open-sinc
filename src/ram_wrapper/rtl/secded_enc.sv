@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : secded_enc.sv
-// Description  : SECDED encoder. Takes in 32 bits of data and up to 25 bits of address, and
-//                produces 7 bits of check bits based on a Hamming code. All done combinatorially.
+// File        : secded_enc.sv
+// Description : SECDED (single error correct, double error detect) encoder.
+//               Takes in 32 bits of data and up to 25 bits of address and
+//               produces 7 check bits based on a Hamming code. All done
+//               combinatorially.
 
 
 module secded_enc(/*AUTOARG*/

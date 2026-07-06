@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : secded_dec.sv
-// Description  : SECDED decoder. Takes in 32 bits of data plus check bits and corrects single-bit
-//                errors while detecting double-bit errors based on a Hamming code.
+// File        : secded_dec.sv
+// Description : SECDED (single error correct, double error detect) decoder.
+//               Takes in a code word and address, produces corrected 32-bit
+//               data along with correctable and uncorrectable error flags based
+//               on a Hamming code. All done combinatorially.
 
 
 module secded_dec(/*AUTOARG*/

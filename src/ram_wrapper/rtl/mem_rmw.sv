@@ -11,8 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// File         : mem_rmw.sv
-// Description  : Logic to handle partial word writes by performing a read-modify-write cycle.
+// File        : mem_rmw.sv
+// Description : Logic to handle partial word writes by performing a
+//               read-modify-write cycle.
 
 module mem_rmw (/*AUTOARG*/
     // Outputs
@@ -56,7 +57,7 @@ module mem_rmw (/*AUTOARG*/
 
     input logic                       err_parity_chk_disable_i;
     input logic                       addr_chk;
-    input logic [((DATA_WIDTH+31)/32)-1:0] wdata_chk; 
+    input logic [(DATA_WIDTH/32)-1:0] wdata_chk; 
 
     output reg                        non_rmw_en;
     output logic                      rmw_en;
