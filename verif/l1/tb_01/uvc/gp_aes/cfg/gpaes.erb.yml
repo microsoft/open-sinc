@@ -1,0 +1,23 @@
+gpaes_uvc:
+  type: sys
+  defn:
+    GPAES_SEED_MAX_DATA_WIDTH: 39
+  vlog:
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/cfg: incdir
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys: incdir
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/seed: incdir
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/cfg/gpaes_agent_config_pkg.svh: sv
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys/gpaes_sys_defines.svh: sv
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/seed/gpaes_seed_params_pkg.sv: sv
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/seed/gpaes_seed_if.sv: v
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/seed/gpaes_seed_pkg.svh: sv
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys/gpaes_sys_params_pkg.sv: v
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys/gpaes_sys.sv: v
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys/gpaes_sys_if.sv: v
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys/gpaes_sys_pkg.svh: sv
+
+gpaes_sys_wrapper_env_pkg:
+  type: sys
+  vlog:
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys_wrapper: incdir
+    $PROJECT_PATH/$PROJECT_NAME/ip/common/verif/uvc/gp_aes/sys_wrapper/gpaes_sys_wrapper_env_pkg.sv: sv

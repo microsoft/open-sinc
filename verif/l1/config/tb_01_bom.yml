@@ -1,0 +1,618 @@
+# Copyright (C) Microsoft Corporation. All rights reserved.
+
+schema_version: '1.6.2'
+
+# ==================================================================
+# GPAES UVC packages (local copy for SINC TB)
+# ==================================================================
+---
+name: sinc_01_gpaes_agent_cfg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/cfg
+    files:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/cfg/gpaes_agent_config_pkg.svh
+    tops: [gpaes_agent_config_pkg]
+
+---
+name: sinc_01_gpaes_seed_pkg
+requires:
+  - sis_sinc::sinc_01_gpaes_agent_cfg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/seed
+    files:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/seed/gpaes_seed_params_pkg.sv
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/seed/gpaes_seed_if.sv
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/seed/gpaes_seed_pkg.svh
+    tops: [gpaes_seed_pkg]
+
+---
+name: sinc_01_gpaes_sys_pkg
+requires:
+  - sis_sinc::sinc_01_gpaes_agent_cfg_pkg
+  - sis_sinc::sinc_01_gpaes_seed_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys
+    files:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys/gpaes_sys_params_pkg.sv
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys/gpaes_sys.sv
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys/gpaes_sys_if.sv
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys/gpaes_sys_pkg.svh
+    tops: [gpaes_sys_pkg]
+
+---
+name: sinc_01_gpaes_sys_wrapper_env_pkg
+requires:
+  - sis_sinc::sinc_01_gpaes_sys_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys_wrapper
+    files:
+      - ${COMPILE_ROOT}/tb_01/uvc/gp_aes/sys_wrapper/gpaes_sys_wrapper_env_pkg.sv
+    tops: [gpaes_sys_wrapper_env_pkg]
+
+# ==================================================================
+# SINC TB packages
+# ==================================================================
+---
+name: sinc_01_reg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0100/csrs/uvm_regs
+      - ${COMPILE_ROOT}/../../0100/include
+      - ${SIS_BASE_PATH}/src/ip/mpu/0106/include
+    files:
+      - ${COMPILE_ROOT}/../../0100/include/sinc_regs.vh
+      - ${SIS_BASE_PATH}/src/ip/mpu/0106/include/mpu_regs.vh
+      - ${COMPILE_ROOT}/../../0100/csrs/uvm_regs/sinc_regs_uvm_reg.sv
+    tops: [sinc_regs_uvm_reg]
+
+---
+name: sinc_01_regmodel_pkg
+requires:
+  - sis_sinc::sinc_01_reg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0100/include
+      - ${COMPILE_ROOT}/tb_01/ral
+    files:
+      - ${COMPILE_ROOT}/tb_01/ral/sinc_regmodel_pkg.sv
+    tops: [sinc_regmodel_pkg]
+
+---
+# 0101-design variant of sinc_01_reg_pkg (paths point to src/sinc/0101)
+name: sinc_01_0101_reg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0101/csrs/uvm_regs
+      - ${COMPILE_ROOT}/../../0101/include
+      - ${SIS_BASE_PATH}/src/ip/mpu/0106/include
+    files:
+      - ${COMPILE_ROOT}/../../0101/include/sinc_regs.vh
+      - ${SIS_BASE_PATH}/src/ip/mpu/0106/include/mpu_regs.vh
+      - ${COMPILE_ROOT}/../../0101/csrs/uvm_regs/sinc_regs_uvm_reg.sv
+    tops: [sinc_regs_uvm_reg]
+
+---
+# 0101-design variant of sinc_01_regmodel_pkg
+name: sinc_01_0101_regmodel_pkg
+requires:
+  - sis_sinc::sinc_01_0101_reg_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0101/include
+      - ${COMPILE_ROOT}/tb_01/ral
+    files:
+      - ${COMPILE_ROOT}/tb_01/ral/sinc_regmodel_pkg.sv
+    tops: [sinc_regmodel_pkg]
+
+---
+name: sinc_01_csd_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/csd
+    files:
+      - ${COMPILE_ROOT}/tb_01/csd/sinc_csd_pkg.sv
+    tops: [sinc_csd_pkg]
+
+---
+name: sinc_01_monitor_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/monitor
+    files:
+      - ${COMPILE_ROOT}/tb_01/monitor/sinc_monitor_pkg.sv
+    tops: [sinc_monitor_pkg]
+
+---
+name: sinc_01_feature_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/features
+    files:
+      - ${COMPILE_ROOT}/tb_01/features/sinc_features_pkg.sv
+    tops: [sinc_features_pkg]
+
+---
+name: sinc_01_env_pkg
+requires:
+  - sis_sinc::sinc_01_reg_pkg
+  - sis_sinc::sinc_01_regmodel_pkg
+  - sis_sinc::sinc_01_monitor_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/env
+      - ${COMPILE_ROOT}/tb_01/scoreboards
+      - $SIS_DV_COMMON_INFRA_PATH/src/verif/uvm/interfaces
+      - ${COMPILE_ROOT}/tb_01/interfaces
+    files:
+      - ${COMPILE_ROOT}/tb_01/env/sinc_env_pkg.sv
+    tops: [sinc_env_pkg]
+
+---
+# 0101-design variant of sinc_01_env_pkg
+name: sinc_01_0101_env_pkg
+requires:
+  - sis_sinc::sinc_01_0101_reg_pkg
+  - sis_sinc::sinc_01_0101_regmodel_pkg
+  - sis_sinc::sinc_01_monitor_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/env
+      - ${COMPILE_ROOT}/tb_01/scoreboards
+      - $SIS_DV_COMMON_INFRA_PATH/src/verif/uvm/interfaces
+      - ${COMPILE_ROOT}/tb_01/interfaces
+    files:
+      - ${COMPILE_ROOT}/tb_01/env/sinc_env_pkg.sv
+    tops: [sinc_env_pkg]
+
+---
+name: sinc_01_paramaters_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0100/include
+      - ${COMPILE_ROOT}/../../0100/rtl
+      - ${COMPILE_ROOT}/tb_01/interfaces
+      - $SIS_BASE_PATH/src/ss_common/config_1
+      - $SIS_BASE_PATH/src/trivium/0102/include
+      - $SIS_AES_PATH/src/aes/0107/include
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/../../0100/rtl/sinc_pkg.sv
+      - $SIS_GPAES_PATH/src/gpaes/0101/rtl/gp_aes_pkg.sv
+      - ${COMPILE_ROOT}/tb_01/top/sinc_01_parameters_pkg.sv
+      - ${COMPILE_ROOT}/tb_01/top/sinc_01_vtag_ram_wrap.sv
+    tops: [sinc_parameters_pkg]
+    views:
+      config_1:
+        defines:
+          - +define+SUBSYSTEM=config_1
+
+---
+name: sinc_01_packet_pkg
+requires:
+  - sis_sinc::sinc_01_reg_pkg
+  - sis_sinc::sinc_01_regmodel_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/packets
+    files:
+      - ${COMPILE_ROOT}/tb_01/packets/sinc_packet_pkg.sv
+    tops: [sinc_packet_pkg]
+
+---
+# 0101-design variant of sinc_01_paramaters_pkg (paths point to src/sinc/0101).
+# Per-platform parameter source picked via views; declares package
+# sinc_parameters_pkg in all variants. config_1 sets SINC_NO_SEED_LOADING=1
+# and defines SINC_WITH_NO_SEED_LOADING so hdl_top wires the override into
+# sinc_top.NO_SEED_LOADING.
+name: sinc_01_0101_paramaters_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/../../0101/include
+      - ${COMPILE_ROOT}/../../0101/rtl
+      - ${COMPILE_ROOT}/tb_01/interfaces
+      - $SIS_BASE_PATH/src/ss_common/config_1
+      - $SIS_BASE_PATH/src/trivium/0102/include
+      - $SIS_AES_PATH/src/aes/0107/include
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/../../0101/rtl/sinc_pkg.sv
+      - $SIS_GPAES_PATH/src/gpaes/0101/rtl/gp_aes_pkg.sv
+    tops: [sinc_parameters_pkg]
+    views:
+      config_1:
+        defines:
+          - +define+SUBSYSTEM=config_1
+          - +define+SINC_WITH_NO_SEED_LOADING
+        files:
+          - ${COMPILE_ROOT}/tb_01/top/sinc_01_0101_config_1_parameters_pkg.sv
+          - ${COMPILE_ROOT}/tb_01/top/sinc_01_vtag_ram_wrap.sv
+
+---
+# 0101-design variant of sinc_01_packet_pkg
+name: sinc_01_0101_packet_pkg
+requires:
+  - sis_sinc::sinc_01_0101_reg_pkg
+  - sis_sinc::sinc_01_0101_regmodel_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/packets
+    files:
+      - ${COMPILE_ROOT}/tb_01/packets/sinc_packet_pkg.sv
+    tops: [sinc_packet_pkg]
+
+---
+name: sinc_01_sequences_pkg
+requires:
+  - sis_dv_common_infra::ip_base_seq_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/seq
+    files:
+      - ${COMPILE_ROOT}/tb_01/seq/sinc_sequences_pkg.sv
+    tops: [sinc_sequences_pkg]
+
+---
+name: sinc_01_test_pkg
+requires:
+  - sis_dv_common_infra::ip_base_seq_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/tests
+    files:
+      - ${COMPILE_ROOT}/tb_01/tests/sinc_tests_pkg.sv
+    tops: [sinc_tests_pkg]
+
+---
+name: sinc_01_utils_pkg
+logical_groups:
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/utils
+    files:
+      - ${COMPILE_ROOT}/tb_01/utils/aes_utils_pkg.sv
+    tops: [aes_utils_pkg]
+
+---
+name: sinc_01_pal
+requires:
+  - sis_dv_common_infra::pal
+logical_groups:
+  tb:
+    defines:
+      - +define+PAL_USE_MENTOR_AXI_VIP=true
+      - +define+PAXOS_USE_SPARSE_MEMORY=1
+      - +define+PAXOS_AXI_SLAVE=1
+      - +define+PAXOS_AXI_4=1
+      - +define+PAL_MAX_NUM_MASTERS=1
+      - +define+PAL_MAX_NUM_SLAVES=1
+      - +define+PAL_MAX_ID_WIDTH=4
+      - +define+PAL_MAX_ADDR_USER_WIDTH=22
+      - +define+MSFT_AXI_MAX_ADDR_USER_WIDTH=22
+      - +define+PAL_MAX_ADDR_WIDTH=32
+      - +define+PAL_MAX_DATA_WIDTH=32
+      - +define+PAL_MAX_NUM_SLAVE_REGIONS=16
+      - +define+MSFT_AXI_MAX_ADDR_WIDTH=32
+      - +define+MSFT_AXI_MAX_DATA_WIDTH=32
+      - +define+MSFT_AXI_MAX_ID_WIDTH=15
+      - +define+SVT_AXI_MAX_DATA_WIDTH=32
+      - +define+SVT_AXI_MAX_DATA_USER_WIDTH=32
+      - +define+SVT_AXI_DISABLE_DEBUG_PORTS=1
+      - +define+MS_AXI_EXTENSION=1
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/pal_01_user_params_pkg.sv
+    tops: [pal_user_params_pkg, pal_pkg]
+
+---
+name: sinc_01_ramwrap
+requires:
+  - sis_dv_common_infra::ramwrap_uvc
+logical_groups:
+  tb:
+    defines:
+      - +define+RAMWRAP_IF_OUTPUT_DLY=0
+      - +define+RAMWRAP_SYS_MAX_NUM_ENGINES=2
+      - +define+RAMWRAP_SYS_MAX_NUM_ERASES=2
+      - +define+RAMWRAP_SYS_MAX_NUM_MEMS=2
+      - +define+RAMWRAP_SYS_MAX_NUM_INJECTS=2
+      - +define+RAMWRAP_ENGINE_MAX_ADDR_WIDTH=32
+      - +define+RAMWRAP_ENGINE_MAX_DATA_WIDTH=160
+      - +define+RAMWRAP_ERASE_MAX_DATA_WIDTH=160
+      - +define+RAMWRAP_MAX_ADDR_WIDTH=32
+      - +define+RAMWRAP_MAX_DATA_WIDTH=160
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/sinc_ramwrap_user_params_pkg.sv
+    tops: [sinc_ramwrap_user_params_pkg]
+
+---
+name: sinc_01_gpaes
+requires:
+  - sis_sinc::sinc_01_gpaes_sys_pkg
+logical_groups:
+  tb:
+    defines:
+      - +define+GPAES_IF_OUTPUT_DLY=0
+      - +define+GPAES_MAX_SEED_DATA_WIDTH=32
+
+---
+name: sinc_01_ccpui
+requires:
+  - sis_dv_common_infra::ccpui_uvc
+logical_groups:
+  tb:
+    defines:
+      - +define+CCPUI_IF_OUTPUT_DLY=0
+      - +define+CCPUI_SYS_MAX_NUM_CPU_MEMS=1
+      - +define+CCPUI_SYS_MAX_NUM_MPUS=1
+      - +define+CCPUI_CPU_MEM_MAX_ADDR_WIDTH=22
+      - +define+CCPUI_CPU_MEM_MAX_DATA_WIDTH=32
+      - +define+CCPUI_MPU_MAX_ADDR_WIDTH=13
+      - +define+CCPUI_MPU_MAX_DATA_WIDTH=32
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/sinc_ccpui_user_params_pkg.sv
+    tops: [sinc_ccpui_user_params_pkg]
+
+# ==================================================================
+# Main TB build entry
+# Build command:
+#   pb fe build --tb=sis_sinc::ip_sinc_tb_01 --platform="config_1" --disable-partcomp --options "rtl=+lint=none" --clean --name sinc_config_1_tb sis_cfg
+# ==================================================================
+---
+name: ip_sinc_tb_01
+requires:
+  - foundationware::fw_extensions
+  - sis_dv_common_infra::uvmf_base_pkg
+  - sis_dv_common_infra::rst_env_pkg
+  - sis_dv_common_infra::clk_env_pkg
+  - sis_sinc::sinc_01_gpaes_agent_cfg_pkg
+  - sis_sinc::sinc_01_gpaes_seed_pkg
+  - sis_sinc::sinc_01_gpaes_sys_pkg
+  - sis_sinc::sinc_01_paramaters_pkg
+  - sis_sinc::sinc_01_ramwrap
+  - sis_dv_common_infra::ramwrap_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_gpaes
+  - sis_sinc::sinc_01_gpaes_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_ccpui
+  - sis_dv_common_infra::ccpui_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_pal
+  - sis_dv_common_infra::pal_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_utils_pkg
+  - sis_sinc::sinc_01_feature_pkg
+  - sis_sinc::sinc_01_csd_pkg
+  - sis_sinc::sinc_01_env_pkg
+  - sis_sinc::sinc_01_packet_pkg
+  - sis_sinc::sinc_01_sequences_pkg
+  - sis_sinc::sinc_01_test_pkg
+  - sis_dvip::msftdvip_fpga_rams_rtl
+  - sis_sinc::ip_sinc_0100_rtl
+logical_groups:
+  dpi_compile:
+    incdirs:
+      - $DVINFRA_PATH/dvinfra/bifrost/src/shared/include
+      - $DVINFRA_PATH/dvinfra/bifrost/src/system/null/include
+      - $COMPILE_ROOT/../../verif/l1/model/func/src
+      - $OPENSSL_HOME/include/
+      - $VCS_HOME/include
+    files:
+      - $COMPILE_ROOT/../../verif/l1/model/func/src/aes.cpp
+    defines:
+      - '-g -Wall -Wextra -std=c++11 -shared -fPIC'
+  dpi_link:
+    defines:
+      - '-lstdc++ -Wl,-rpath,$OPENSSL_HOME/lib -L $OPENSSL_HOME/lib -lssl -lcrypto'
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/msftDvIp_fpga_ram.sv
+      - ${COMPILE_ROOT}/tb_01/top/sinc_if_bind.sv
+      - ${COMPILE_ROOT}/tb_01/top/hvl_top.sv
+      - ${COMPILE_ROOT}/tb_01/top/hdl_top.sv
+    defines:
+      - +define+PB_BUILD
+      - +define+SIMULATION
+      - +define+PLAT__L1
+      - +define+SYNOPSYS_SV
+      - +define+UVM_PACKER_MAX_BYTES=1500000
+      - +define+UVM_DISABLE_AUTO_ITEM_RECORDING
+      - +define+UVMC_MAX_WORDS=32
+      - +define+SIM=1
+      - +define+UVM_REG_DATA_WIDTH=256
+      - +define+MAP_PROT_ATTR
+      - +define+MVC_NO_DEPRECATED
+      - +define+GPAES_IF_OUTPUT_DLY=0
+    tops:
+      - hdl_top
+      - hvl_top
+    views:
+      config_1:
+        defines:
+          - +define+SUBSYSTEM=config_1
+          - +define+GPAES_MAX_SEED_DATA_WIDTH=32
+
+# ==================================================================
+# Design-version-specific TB builds
+# ip_sinc_tb_01_rtl_0100 is same as ip_sinc_tb_01 (default RTL is 0100)
+# ip_sinc_tb_01_rtl_0101 swaps in the 0101 RTL
+#
+# Build command (0100):
+#   pb fe build --tb=sis_sinc::ip_sinc_tb_01_rtl_0100 --platform="config_1" --disable-partcomp --options "rtl=+lint=none" --clean --name sinc_config_1_tb sis_cfg
+# Build command (0101):
+#   pb fe build --tb=sis_sinc::ip_sinc_tb_01_rtl_0101 --platform="config_1" --disable-partcomp --options "rtl=+lint=none" --clean --name sinc_config_1_tb sis_cfg
+# ==================================================================
+---
+name: ip_sinc_tb_01_rtl_0100
+requires:
+  - foundationware::fw_extensions
+  - sis_dv_common_infra::uvmf_base_pkg
+  - sis_dv_common_infra::rst_env_pkg
+  - sis_dv_common_infra::clk_env_pkg
+  - sis_sinc::sinc_01_gpaes_agent_cfg_pkg
+  - sis_sinc::sinc_01_gpaes_seed_pkg
+  - sis_sinc::sinc_01_gpaes_sys_pkg
+  - sis_sinc::sinc_01_paramaters_pkg
+  - sis_sinc::sinc_01_ramwrap
+  - sis_dv_common_infra::ramwrap_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_gpaes
+  - sis_sinc::sinc_01_gpaes_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_ccpui
+  - sis_dv_common_infra::ccpui_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_pal
+  - sis_dv_common_infra::pal_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_utils_pkg
+  - sis_sinc::sinc_01_feature_pkg
+  - sis_sinc::sinc_01_csd_pkg
+  - sis_sinc::sinc_01_env_pkg
+  - sis_sinc::sinc_01_packet_pkg
+  - sis_sinc::sinc_01_sequences_pkg
+  - sis_sinc::sinc_01_test_pkg
+  - sis_dvip::msftdvip_fpga_rams_rtl
+  - sis_sinc::ip_sinc_0100_rtl
+logical_groups:
+  dpi_compile:
+    incdirs:
+      - $DVINFRA_PATH/dvinfra/bifrost/src/shared/include
+      - $DVINFRA_PATH/dvinfra/bifrost/src/system/null/include
+      - $COMPILE_ROOT/../../verif/l1/model/func/src
+      - $OPENSSL_HOME/include/
+      - $VCS_HOME/include
+    files:
+      - $COMPILE_ROOT/../../verif/l1/model/func/src/aes.cpp
+    defines:
+      - '-g -Wall -Wextra -std=c++11 -shared -fPIC'
+  dpi_link:
+    defines:
+      - '-lstdc++ -Wl,-rpath,$OPENSSL_HOME/lib -L $OPENSSL_HOME/lib -lssl -lcrypto'
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/msftDvIp_fpga_ram.sv
+      - ${COMPILE_ROOT}/tb_01/top/sinc_if_bind.sv
+      - ${COMPILE_ROOT}/tb_01/top/hvl_top.sv
+      - ${COMPILE_ROOT}/tb_01/top/hdl_top.sv
+    defines:
+      - +define+PB_BUILD
+      - +define+SIMULATION
+      - +define+PLAT__L1
+      - +define+SYNOPSYS_SV
+      - +define+UVM_PACKER_MAX_BYTES=1500000
+      - +define+UVM_DISABLE_AUTO_ITEM_RECORDING
+      - +define+UVMC_MAX_WORDS=32
+      - +define+SIM=1
+      - +define+UVM_REG_DATA_WIDTH=256
+      - +define+MAP_PROT_ATTR
+      - +define+MVC_NO_DEPRECATED
+      - +define+GPAES_IF_OUTPUT_DLY=0
+    tops:
+      - hdl_top
+      - hvl_top
+    views:
+      config_1:
+        defines:
+          - +define+SUBSYSTEM=config_1
+          - +define+GPAES_MAX_SEED_DATA_WIDTH=32
+
+---
+name: ip_sinc_tb_01_rtl_0101
+requires:
+  - foundationware::fw_extensions
+  - sis_dv_common_infra::uvmf_base_pkg
+  - sis_dv_common_infra::rst_env_pkg
+  - sis_dv_common_infra::clk_env_pkg
+  - sis_sinc::sinc_01_gpaes_agent_cfg_pkg
+  - sis_sinc::sinc_01_gpaes_seed_pkg
+  - sis_sinc::sinc_01_gpaes_sys_pkg
+  - sis_sinc::sinc_01_0101_paramaters_pkg
+  - sis_sinc::sinc_01_ramwrap
+  - sis_dv_common_infra::ramwrap_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_gpaes
+  - sis_sinc::sinc_01_gpaes_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_ccpui
+  - sis_dv_common_infra::ccpui_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_pal
+  - sis_dv_common_infra::pal_sys_wrapper_env_pkg
+  - sis_sinc::sinc_01_utils_pkg
+  - sis_sinc::sinc_01_feature_pkg
+  - sis_sinc::sinc_01_csd_pkg
+  - sis_sinc::sinc_01_0101_reg_pkg
+  - sis_sinc::sinc_01_0101_regmodel_pkg
+  - sis_sinc::sinc_01_0101_env_pkg
+  - sis_sinc::sinc_01_0101_packet_pkg
+  - sis_sinc::sinc_01_sequences_pkg
+  - sis_sinc::sinc_01_test_pkg
+  - sis_dvip::msftdvip_fpga_rams_rtl
+  - sis_sinc::ip_sinc_0101_rtl
+logical_groups:
+  dpi_compile:
+    incdirs:
+      - $DVINFRA_PATH/dvinfra/bifrost/src/shared/include
+      - $DVINFRA_PATH/dvinfra/bifrost/src/system/null/include
+      - $COMPILE_ROOT/../../verif/l1/model/func/src
+      - $OPENSSL_HOME/include/
+      - $VCS_HOME/include
+    files:
+      - $COMPILE_ROOT/../../verif/l1/model/func/src/aes.cpp
+    defines:
+      - '-g -Wall -Wextra -std=c++11 -shared -fPIC'
+  dpi_link:
+    defines:
+      - '-lstdc++ -Wl,-rpath,$OPENSSL_HOME/lib -L $OPENSSL_HOME/lib -lssl -lcrypto'
+  tb:
+    incdirs:
+      - ${COMPILE_ROOT}/tb_01/top
+    files:
+      - ${COMPILE_ROOT}/tb_01/top/msftDvIp_fpga_ram.sv
+      - ${COMPILE_ROOT}/tb_01/top/sinc_if_bind.sv
+      - ${COMPILE_ROOT}/tb_01/top/hvl_top.sv
+      - ${COMPILE_ROOT}/tb_01/top/hdl_top.sv
+    defines:
+      - +define+PB_BUILD
+      - +define+SIMULATION
+      - +define+PLAT__L1
+      - +define+SYNOPSYS_SV
+      - +define+UVM_PACKER_MAX_BYTES=1500000
+      - +define+UVM_DISABLE_AUTO_ITEM_RECORDING
+      - +define+UVMC_MAX_WORDS=32
+      - +define+SIM=1
+      - +define+UVM_REG_DATA_WIDTH=256
+      - +define+MAP_PROT_ATTR
+      - +define+MVC_NO_DEPRECATED
+      - +define+GPAES_IF_OUTPUT_DLY=0
+    tops:
+      - hdl_top
+      - hvl_top
+    waves_tops: hdl_top hvl_top
+    views:
+      config_1:
+        defines:
+          - +define+SUBSYSTEM=config_1
+          - +define+GPAES_MAX_SEED_DATA_WIDTH=32

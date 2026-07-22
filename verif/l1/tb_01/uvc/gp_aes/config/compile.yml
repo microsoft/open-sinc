@@ -1,0 +1,33 @@
+---
+provides: [gpaes_uvc]
+schema_version: 2.5.0
+targets:  
+  tb:
+    options:
+      - '+define+GPAES_MAX_SEED_DATA_WIDTH=32'
+    directories:
+      - ${COMPILE_ROOT}/cfg
+      - ${COMPILE_ROOT}/sys
+      - ${COMPILE_ROOT}/seed
+    files:
+      - ${COMPILE_ROOT}/cfg/gpaes_agent_config_pkg.svh
+      - ${COMPILE_ROOT}/sys/gpaes_sys_defines.svh
+      - ${COMPILE_ROOT}/seed/gpaes_seed_params_pkg.sv
+      - ${COMPILE_ROOT}/seed/gpaes_seed_if.sv
+      - ${COMPILE_ROOT}/seed/gpaes_seed_pkg.svh
+      - ${COMPILE_ROOT}/sys/gpaes_sys_params_pkg.sv
+      - ${COMPILE_ROOT}/sys/gpaes_sys.sv
+      - ${COMPILE_ROOT}/sys/gpaes_sys_if.sv
+      - ${COMPILE_ROOT}/sys/gpaes_sys_pkg.svh
+    tops: [gpaes_seed_pkg, gpaes_sys_pkg]
+
+---
+provides: [gpaes_sys_wrapper_env_pkg]
+schema_version: 2.5.0
+targets:
+  tb:
+    directories:
+      - ${COMPILE_ROOT}/sys_wrapper
+    files:
+      - ${COMPILE_ROOT}/sys_wrapper/gpaes_sys_wrapper_env_pkg.sv
+

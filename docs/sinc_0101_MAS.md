@@ -5,11 +5,11 @@ Version: 1.0
 
 # Disclaimer
 
-This document is Microsoft confidential and is disclosed pursuant to a non-disclosure agreement and/or other written agreement between the recipient and Microsoft Corporation (collectively, the “Agreements”). Information in this document is restricted to Microsoft authorized recipients only and any use, reproduction, distribution, or public discussion of this material is limited only to that necessary for recipient’s performance of its obligations under the Agreements.
+Copyright (c) Microsoft Corporation and contributors. All rights reserved.
 
-Microsoft and its suppliers may have patents, patent applications, trademarks, copyrights, trade secrets and/or other intellectual property rights covering subject matter in this document. Microsoft’s furnishing of this document to recipient does not grant or imply any license to any patents, trademarks, copyrights, trade secrets or other intellectual property rights, and recipient’s permitted use of any such intellectual property rights, if any, is solely governed by the Agreements.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 
-© 2023 Microsoft Corporation. All rights reserved.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 # Table of Contents
 

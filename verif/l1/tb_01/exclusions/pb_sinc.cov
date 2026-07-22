@@ -1,0 +1,15 @@
+// Exclude the testbench
+-tree hdl_top
+
+// Include SINC
++tree sinc_top
+
+//Exclude Unrelated modules
+-tree hdl_top.sinc.u_sinc_ciu.u_clock_gate_ovr
+-tree hdl_top.sinc.u_sinc_ciu.u_mpu_ret
+-tree hdl_top.sinc.u_sinc_ciu.u_ram_wrapper
+-tree hdl_top.sinc.u_sinc_cmu.u_axi_mgr
+-tree hdl_top.sinc.u_sinc_cmu.u_clock_gate_ovr
+-tree hdl_top.sinc.u_sinc_cmu.u_crypto_wrap.u_gp_aes
+-tree hdl_top.sinc.u_sinc_cmu.u_crypto_wrap.u_input_buf
+-tree hdl_top.sinc.u_sinc_cmu.u_crypto_wrap.u_output_buf
