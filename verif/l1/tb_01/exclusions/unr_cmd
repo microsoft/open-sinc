@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Compile:
+# submit -i vcs -sverilog -f <RTL .f file> -timescale=1ns/10ps -lca +notimingchecks +nospecify -full64 -cm line+cond+branch+tgl -cm_hier <.cov file> -skip_translate_body -unr=<UNR config file>
+
+# sinc example:
+# submit -i vcs -sverilog /
+#        -f <path to rtl_files.verilog.f> /
+#        -timescale=1ns/10ps -lca +notimingchecks +nospecify -full64 /
+#        -cm line+cond+branch+tgl /
+#        -cm_hier <path to pb_sinc.cov> /
+#        -skip_translate_body /
+#        -unr=<path to sinc_unr_cfg.txt>
+
+# run:
+# submit -i vnc run -Ir -r "RAM/256000 redhat7" -- ./unrSimv -cm line+cond+branch+tgl
+
+
+
+FILELIST=<path to rtl_files.verilog.f>
+COVFILE=$PROJ_STEM/ip/sinc/verif/tb_01/exclusions/pb_sinc.cov
+UNRCFG=$PROJ_STEM/ip/sinc/verif/tb_01/exclusions/sinc_unr_cfg.txt
+
+submit -i vcs -sverilog -f $FILELIST  -timescale=1ns/10ps -lca +notimingchecks +nospecify -full64 -cm line+cond+branch+fsm+tgl -cm_hier $COVFILE -skip_translate_body -unr=$UNRCFG
+# submit -i ./unrSimv -cm line+cond+branch+fsm+tgl

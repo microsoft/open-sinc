@@ -1,0 +1,13 @@
+-top sinc_top
+-covInput <path to aggregate coverage vdb>
+-covDUT hdl_top.sinc
+-clock clk 10
+-reset rst_n 0
+-tglInput
+-enableTopModExcl
+-maxTime 2H
+-appVar analyze_skip_translate_body true
+-save_exclusion exclusions.el
+-fmlUltra
+-grid RTDA 12
+-gridOpts vnc run -e "SNAPSHOT" -r redhat7

@@ -1,0 +1,6 @@
+// Exclude the testbench
+-tree hdl_top
+-tree hvl_top
+
+// Include sinc
++tree hdl_top.sinc

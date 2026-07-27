@@ -26,9 +26,11 @@ SInC is composed of two cooperating hardware blocks:
 - **Cache Interface Unit (CIU)** — sits on the processor side of the cache. Owns the cache SRAM, tag/state, the 4-way set-associative lookup, and the FIFO replacement policy. Also enforces memory-protection attributes (via the integrated [MPU](src/mpu/)) on every fetch.
 - **Cache Management Unit (CMU)** — services block misses by issuing AXI reads to external memory, decrypting and authenticating each block (AES-GCM / AES-XTS via the integrated [AES](src/aes/) core), and delivering the plaintext block to the CIU. The CMU also handles firmware-driven initialization commands (key install, image encrypt-on-load, address-translation programming, cache lockdown, performance counters, debug, etc.).
 
-The block diagram, command set, register interface, and full programmer's model are documented in [docs/SInC_0100_AS.md](docs/SInC_0100_AS.md) (architecture) and [docs/sinc_0101_MAS.md](docs/sinc_0101_MAS.md) (micro-architecture). The verification plan lives in [docs/SInC_0100_UVM.md](docs/SInC_0100_UVM.md).
+The block diagram, command set, register interface, and full programmer's model are documented in [docs/sinc_0101_AS.md](docs/sinc_0101_AS.md) (architecture) and [docs/sinc_0101_MAS.md](docs/sinc_0101_MAS.md) (micro-architecture). The verification plan lives in [docs/sinc_0101_UVM.md](docs/sinc_0101_UVM.md).
 
-This repository contains the open-source RTL for SInC plus its sub-components (AES, MPU, AXI manager/subordinate, RAM wrapper with ECC, replaceable std-cell templates) and a set of C-based directed tests under [verif/c_tests/](verif/c_tests/). A UVM testbench will be added in a follow-up drop.
+This repository contains the open-source RTL for SInC plus its sub-components (AES, MPU, AXI manager/subordinate, RAM wrapper with ECC, replaceable std-cell templates), a set of C-based directed tests under [verif/c_tests/](verif/c_tests/), and an L1 (block-level) UVM testbench under [verif/l1/](verif/l1/).
+
+> **Reference only.** The L1 UVM testbench is provided for reference to illustrate the SInC verification structure and intent. It is **highly dependent on Microsoft's internal Playbook workflow** (BOM-driven compile/elaborate/run automation) and on several internal VIPs and modules that are **not included** in this release. As shipped it will not compile or run standalone — see the **Run Simulation** section and disclaimers below.
 
 ## **Tools Used** ##
 
@@ -129,7 +131,27 @@ open_sinc
 │   │   └── rtl/             # SystemVerilog sources (sinc_top, CMU, CIU, ...)
 │   └── std_cells            # Replaceable std-cell templates (e.g. clock gate)
 └── verif
-    └── c_tests              # C-based firmware tests run by the embedded core
+    ├── c_tests              # C-based firmware tests run by the embedded core
+    └── l1                   # L1 (block-level) UVM testbench — reference only
+        ├── config
+        │   └── tb_01_bom.yml    # Playbook BOM: packages, filelists, dependencies
+        └── tb_01
+            ├── top              # hdl_top / hvl_top, param pkgs, RAM/peek-poke models
+            ├── tests            # UVM tests (sinc_tests_pkg, test_top)
+            ├── env              # env, configuration, storage directory, comp cfgs
+            ├── sys              # system-level component / sys configuration
+            ├── seq              # base + directed/random/error-injection sequences
+            ├── ral              # register model (regmodel, register/field, PAL adapter)
+            ├── interfaces       # virtual + memory backdoor interfaces
+            ├── monitor          # monitors
+            ├── packets          # transaction packet definitions
+            ├── scoreboards      # scoreboard + coverage sampling
+            ├── csd              # cache state directory model
+            ├── features         # feature packages
+            ├── utils            # utility packages
+            ├── cov              # coverage config
+            ├── exclusions       # coverage exclusions (Playbook .el lists)
+            └── uvc              # embedded UVCs (e.g. gp_aes)
 ```
 Each sub-component under `src/<block>/` follows the same internal layout:
 ```
@@ -154,8 +176,9 @@ Required for build / lint / simulation:<BR>
 ```sh
 SNPSLMD_LICENSE_FILE=<port>@<licserver>
 ```
-Required only for UVM simulation (added later, alongside the UVM testbenches):<BR>
-`UVM_HOME`, `UVMF_HOME`, `QUESTA_MVC_HOME`, `AVERY_SIM`, `AVERY_PLI`, `AVERY_AXI` — filesystem paths to the UVM library, Mentor UVM-Frameworks, QVIP, and Avery AXI VIP installations respectively. See the **Run Simulation** section (TBD) for details.
+Required only for the L1 UVM testbench (reference only — driven by Microsoft's internal Playbook workflow):<BR>
+`COMPILE_ROOT`, `SIS_BASE_PATH` — roots used by the Playbook BOM ([verif/l1/config/tb_01_bom.yml](verif/l1/config/tb_01_bom.yml)) to resolve filelists, include dirs, and package dependencies.<BR>
+`UVM_HOME`, `UVMF_HOME`, `QUESTA_MVC_HOME`, `AVERY_SIM`, `AVERY_PLI`, `AVERY_AXI` — filesystem paths to the UVM library, Mentor UVM-Frameworks, QVIP, and Avery AXI VIP installations respectively. Note that the L1 bench cannot be built or run without Playbook and the internal/commercial dependencies described in the **Run Simulation** section.
 
 Required only for firmware (`verif/c_tests`) builds:<BR>
 `TESTNAME`: Name of one of the directories under [verif/c_tests/](verif/c_tests/) (e.g. `sinc_aes_test_mode`, `sinc_reinit`). Selects which test source is compiled into the SRAM init hex files.<BR>
@@ -189,7 +212,7 @@ Common targets:
    ```sh
    make build
    ```
-   Outputs are written under [build/](build/) — specifically `build/sinc_top.expanded.vf` and `build/obj_dir/`. A runnable simulator is *not* produced at this stage; that requires a SystemVerilog or C++ testbench (added in the **Run Simulation** section, TBD).
+   Outputs are written under [build/](build/) — specifically `build/sinc_top.expanded.vf` and `build/obj_dir/`. A runnable simulator is *not* produced at this stage; that requires a SystemVerilog or C++ testbench (see the **Run Simulation** section for the reference L1 UVM bench).
 
 ### Typical VCS flow ###
 
@@ -204,7 +227,7 @@ VCS is a commercial Synopsys tool. You must have a valid license before proceedi
    ```sh
    make vcs
    ```
-   This produces `build/simv`. The current target only compiles `sinc_top` — wiring up a testbench top and running `simv` will be described in **Run Simulation**.
+   This produces `build/simv`. The current target only compiles `sinc_top`. The reference L1 UVM testbench top is built through Microsoft's internal Playbook flow rather than this target — see **Run Simulation**.
 
 ### Per-block compilation ###
 
@@ -213,7 +236,15 @@ Each sub-component under `src/<block>` has its own `config/*.vf` filelist that e
 
 ## **Run Simulation** ##
 
-TBD — this section will be filled in once the UVM testbenches under [verif/](verif/) are wired up. It will document the SInC top-level UVM bench, the per-block UVM unit benches, the supporting C tests under [verif/c_tests/](verif/c_tests/), and the regression scripts that drive them.
+An L1 (block-level) UVM testbench for SInC is provided under [verif/l1/tb_01/](verif/l1/tb_01/). It follows a standard UVM layout — HDL/HVL tops ([top/](verif/l1/tb_01/top/)), tests ([tests/](verif/l1/tb_01/tests/)), environment ([env/](verif/l1/tb_01/env/)), sequences ([seq/](verif/l1/tb_01/seq/)), register model ([ral/](verif/l1/tb_01/ral/)), scoreboards ([scoreboards/](verif/l1/tb_01/scoreboards/)), monitors, interfaces, packets, and embedded UVCs ([uvc/](verif/l1/tb_01/uvc/)) such as `gp_aes`. It exercises the CIU/CMU together with the integrated AES, MPU, and RAM-wrapper blocks using AXI, CPU, erase, MPU, and error-injection sequences.
+
+> **Reference only — not runnable standalone.** This testbench is **tightly coupled to Microsoft's internal Playbook workflow**. Compilation, elaboration, filelist/incdir resolution, and regression are all driven from the Playbook BOM at [verif/l1/config/tb_01_bom.yml](verif/l1/config/tb_01_bom.yml), which resolves package dependencies via `${COMPILE_ROOT}`, `${SIS_BASE_PATH}`, and `requires:` references to internal packages. The bench also depends on commercial VIP (Mentor QVIP, Avery AXI VIP, ARM AXI Protocol Checker), Mentor UVM-Frameworks, and internal Microsoft modules/PAL layers that are **not included** in this release.
+>
+> Because Playbook and those dependencies are not part of the open-source drop, the testbench **cannot be built or simulated as-is**. It is published so integrators can study the verification structure, environment/sequence architecture, register model, and coverage/exclusion setup, and adapt them to their own simulation flow. The BOM files and `.el` coverage exclusions under [verif/l1/tb_01/exclusions/](verif/l1/tb_01/exclusions/) illustrate how the Playbook flow is configured.
+>
+> Required (Playbook-managed) environment variables include `COMPILE_ROOT`, `SIS_BASE_PATH`, `UVM_HOME`, `UVMF_HOME`, `QUESTA_MVC_HOME`, `AVERY_SIM`, `AVERY_PLI`, and `AVERY_AXI`.
+
+The supporting C tests under [verif/c_tests/](verif/c_tests/) are documented in [docs/sinc_0101_CTESTS.md](docs/sinc_0101_CTESTS.md), and the overall verification plan lives in [docs/sinc_0101_UVM.md](docs/sinc_0101_UVM.md). The per-test intent for the L1 bench is listed in [verif/l1/tb_01/doc/sinc_test_list.md](verif/l1/tb_01/doc/sinc_test_list.md).
 
 
 ## **Verilog File Lists** ##
@@ -237,7 +268,7 @@ src/std_cells/gtech_lib.sv contains generic cells (nand, xor, xnor) used by gpae
 
 * Register documentation is auto-generated from the SystemRDL sources under [src/sinc/registers/](src/sinc/registers/).
 * The architectural and micro-architectural specifications live in [docs/](docs/) — see [docs/SInC_0100_AS.md](docs/SInC_0100_AS.md) (architecture), [docs/sinc_0101_MAS.md](docs/sinc_0101_MAS.md) (micro-architecture), and [docs/SInC_0100_UVM.md](docs/SInC_0100_UVM.md) (verification plan).
-* UVM verif infrastructure will be provided in update soon.
+* **Disclaimer:** The L1 UVM testbench under [verif/l1/](verif/l1/) is provided **for reference only**. It is highly dependent on Microsoft's internal **Playbook** workflow (BOM-driven compile/elaborate/run automation) as well as commercial VIP and internal Microsoft modules that are not part of this release, and therefore **cannot be compiled or simulated standalone** as shipped. It is intended to illustrate the SInC verification architecture, environment/sequence structure, register model, and coverage setup — not for direct functional use. See the **Run Simulation** section for details.
 * **Disclaimer:** The C tests under [verif/c_tests/](verif/c_tests/) carry no functional guarantee. They were originally developed in tight integration with internal Microsoft modules and dependencies that are not included in this release. They are provided for reference purposes only — intended to illustrate simulation structure and test intent rather than for direct functional use.
 * **Disclaimer:** The synthesis, CDC, and RDC setup files (under each block's `config/synthesis/`, `config/cdc/`, and `config/rdc/` directories) have not been tested in this release because a technology node was not available to us at the time. They are provided for reference only and will be validated in the next release.
 

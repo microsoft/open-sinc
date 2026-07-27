@@ -32,7 +32,7 @@ Version : \[Status\]
 
 [3.1 Acronyms and terminology [8](#acronyms-and-terminology)](#acronyms-and-terminology)
 
-[4 Confidentiality [9](#confidentiality)](#confidentiality)
+[4 Disclaimer [9](#disclaimer)](#disclaimer)
 
 [5 Scope [10](#scope)](#scope)
 
@@ -282,11 +282,13 @@ Version : \[Status\]
 |      |                                                                    |
 |      |                                                                    |
 
-# Confidentiality
+# Disclaimer
 
-All the information contained in this document is confidential.
+Copyright (c) Microsoft Corporation and contributors. All rights reserved.
 
-This document refers to intellectual property (IP) that Microsoft may develop or purchase. Microsoft’s interest in this IP is confidential information. Do not reveal or discuss the information in this document or Microsoft’s interest in this IP with third parties except as specifically authorized by Microsoft.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 Product names and specifications referenced in this document may be trademarks of Microsoft, other companies, or standards setting organizations.
 
