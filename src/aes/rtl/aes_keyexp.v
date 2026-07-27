@@ -135,6 +135,7 @@ reg              last_round_1d;
 integer          i;
 integer          j;
 integer          k;
+integer          ri;
 
 //
 // datapath (DP):
@@ -388,51 +389,51 @@ end
 // datapath for reverse calculation
 // ----------------------------------
 always @ * begin
-        for (i=0; i<4; i=i+1) begin
+        for (ri=0; ri<4; ri=ri+1) begin
             // key_tmp_mux[2-3]
             if (sel_tmp_mux0)
-                key_tmp_mux[2][i] = subword_rcon0[i];
+                key_tmp_mux[2][ri] = subword_rcon0[ri];
             else
-                key_tmp_mux[2][i] = key_cur[3][i];
+                key_tmp_mux[2][ri] = key_cur[3][ri];
             if (sel_tmp_mux1)
-                key_tmp_mux[3][i] = subword_rcon0[i];
+                key_tmp_mux[3][ri] = subword_rcon0[ri];
             else
-                key_tmp_mux[3][i] = key_cur[1][i];
+                key_tmp_mux[3][ri] = key_cur[1][ri];
             // key_nxt_add_inv_X
             if (aes128) begin
-                key_nxt_add_inv_0[0][i] = key_tmp_mux[2][i];
-                key_nxt_add_inv_0[1][i] = key_cur[0][i];
-                key_nxt_add_inv_0[2][i] = key_cur[1][i];
-                key_nxt_add_inv_0[3][i] = key_cur[2][i];
-                key_nxt_add_inv_1[0][i] = key_cur[0][i];
-                key_nxt_add_inv_1[1][i] = key_cur[1][i];
-                key_nxt_add_inv_1[2][i] = key_cur[2][i];
-                key_nxt_add_inv_1[3][i] = key_cur[3][i];
+                key_nxt_add_inv_0[0][ri] = key_tmp_mux[2][ri];
+                key_nxt_add_inv_0[1][ri] = key_cur[0][ri];
+                key_nxt_add_inv_0[2][ri] = key_cur[1][ri];
+                key_nxt_add_inv_0[3][ri] = key_cur[2][ri];
+                key_nxt_add_inv_1[0][ri] = key_cur[0][ri];
+                key_nxt_add_inv_1[1][ri] = key_cur[1][ri];
+                key_nxt_add_inv_1[2][ri] = key_cur[2][ri];
+                key_nxt_add_inv_1[3][ri] = key_cur[3][ri];
             end
             else if (aes192) begin
-                key_nxt_add_inv_0[0][i] = key_tmp_mux[3][i];
-                key_nxt_add_inv_0[1][i] = key_cur[2][i];
-                key_nxt_add_inv_0[2][i] = key_tmp_mux[2][i];
-                key_nxt_add_inv_0[3][i] = key_pre[0][i];
-                key_nxt_add_inv_1[0][i] = key_cur[2][i];
-                key_nxt_add_inv_1[1][i] = key_cur[3][i];
-                key_nxt_add_inv_1[2][i] = key_pre[0][i];
-                key_nxt_add_inv_1[3][i] = key_pre[1][i];
+                key_nxt_add_inv_0[0][ri] = key_tmp_mux[3][ri];
+                key_nxt_add_inv_0[1][ri] = key_cur[2][ri];
+                key_nxt_add_inv_0[2][ri] = key_tmp_mux[2][ri];
+                key_nxt_add_inv_0[3][ri] = key_pre[0][ri];
+                key_nxt_add_inv_1[0][ri] = key_cur[2][ri];
+                key_nxt_add_inv_1[1][ri] = key_cur[3][ri];
+                key_nxt_add_inv_1[2][ri] = key_pre[0][ri];
+                key_nxt_add_inv_1[3][ri] = key_pre[1][ri];
             end
             else begin
-                key_nxt_add_inv_0[0][i] = key_tmp_mux[2][i];
-                key_nxt_add_inv_0[1][i] = key_pre[0][i];
-                key_nxt_add_inv_0[2][i] = key_pre[1][i];
-                key_nxt_add_inv_0[3][i] = key_pre[2][i];
-                key_nxt_add_inv_1[0][i] = key_pre[0][i];
-                key_nxt_add_inv_1[1][i] = key_pre[1][i];
-                key_nxt_add_inv_1[2][i] = key_pre[2][i];
-                key_nxt_add_inv_1[3][i] = key_pre[3][i];
+                key_nxt_add_inv_0[0][ri] = key_tmp_mux[2][ri];
+                key_nxt_add_inv_0[1][ri] = key_pre[0][ri];
+                key_nxt_add_inv_0[2][ri] = key_pre[1][ri];
+                key_nxt_add_inv_0[3][ri] = key_pre[2][ri];
+                key_nxt_add_inv_1[0][ri] = key_pre[0][ri];
+                key_nxt_add_inv_1[1][ri] = key_pre[1][ri];
+                key_nxt_add_inv_1[2][ri] = key_pre[2][ri];
+                key_nxt_add_inv_1[3][ri] = key_pre[3][ri];
             end
             // key_nxt_inv
             for (k=0; k<4; k=k+1) begin
-                key_nxt_inv[k][i] = key_nxt_add_inv_0[k][i] ^
-                                       key_nxt_add_inv_1[k][i];
+                key_nxt_inv[k][ri] = key_nxt_add_inv_0[k][ri] ^
+                                       key_nxt_add_inv_1[k][ri];
             end
         end
 end
