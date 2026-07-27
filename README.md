@@ -26,7 +26,7 @@ SInC is composed of two cooperating hardware blocks:
 - **Cache Interface Unit (CIU)** — sits on the processor side of the cache. Owns the cache SRAM, tag/state, the 4-way set-associative lookup, and the FIFO replacement policy. Also enforces memory-protection attributes (via the integrated [MPU](src/mpu/)) on every fetch.
 - **Cache Management Unit (CMU)** — services block misses by issuing AXI reads to external memory, decrypting and authenticating each block (AES-GCM / AES-XTS via the integrated [AES](src/aes/) core), and delivering the plaintext block to the CIU. The CMU also handles firmware-driven initialization commands (key install, image encrypt-on-load, address-translation programming, cache lockdown, performance counters, debug, etc.).
 
-The block diagram, command set, register interface, and full programmer's model are documented in [docs/SInC_0100_AS.md](docs/SInC_0100_AS.md) (architecture) and [docs/sinc_0101_MAS.md](docs/sinc_0101_MAS.md) (micro-architecture). The verification plan lives in [docs/SInC_0100_UVM.md](docs/SInC_0100_UVM.md).
+The block diagram, command set, register interface, and full programmer's model are documented in [docs/sinc_0101_AS.md](docs/sinc_0101_AS.md) (architecture) and [docs/sinc_0101_MAS.md](docs/sinc_0101_MAS.md) (micro-architecture). The verification plan lives in [docs/sinc_0101_UVM.md](docs/sinc_0101_UVM.md).
 
 This repository contains the open-source RTL for SInC plus its sub-components (AES, MPU, AXI manager/subordinate, RAM wrapper with ECC, replaceable std-cell templates), a set of C-based directed tests under [verif/c_tests/](verif/c_tests/), and an L1 (block-level) UVM testbench under [verif/l1/](verif/l1/).
 
