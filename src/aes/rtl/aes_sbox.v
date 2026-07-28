@@ -72,18 +72,16 @@ endgenerate
 
 
 generate
+    if (BYPASS == 0) begin : gen_invi_mdpl_reg
         always @ (posedge clk_i or negedge reset_nai) begin
             if (!reset_nai) begin
                 invi_mdpl_r <= '0;
             end
-            else begin
-                if (BYPASS == 0) begin
-                    if (en_i) begin
-                        invi_mdpl_r <= invi_mdpl;
-                    end
-                end
+            else if (en_i) begin
+                invi_mdpl_r <= invi_mdpl;
             end
         end
+    end
 endgenerate
 
 
