@@ -61,7 +61,7 @@ output           error_o;
 localparam STATE_WIDTH = 4;
 
 // state machine
-typedef enum bit [STATE_WIDTH-1:0]
+typedef enum logic [STATE_WIDTH-1:0]
   {
   S_IDLE    = 4'h0,
   S_LOAD0   = 4'h1,
@@ -551,7 +551,7 @@ endgenerate
 // ----------------------------------
 // state machine
 // ----------------------------------
-assign ki_max = (nr_i + 1) * 4;
+assign ki_max = 6'((nr_i + 1) * 4);
 assign finish = (ki_nxt[5:0] >= ki_max);
 
 // gen_lastkey to help the state machine
